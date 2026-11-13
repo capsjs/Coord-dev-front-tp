@@ -1,3 +1,5 @@
+Branche créée à partir de Jira
+
 # Coord Events : gestionnaire d'événements
 
 API back-end d'un gestionnaire d'événements, avec trois rôles :
