@@ -86,14 +86,6 @@ Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`).
 
 Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont renvoyées au format `{ "error": "message" }`.
 
-### Règles métier
-
-- On ne peut pas s'inscrire en tant qu'`admin` : seul un admin peut promouvoir un compte.
-- Les emails sont uniques, sans tenir compte de la casse.
-- Les mots de passe font au moins 8 caractères et sont hachés avec bcrypt.
-- Le rôle est relu en base à chaque requête : un changement de rôle ou une suppression de compte s'applique immédiatement, même si le jeton n'a pas expiré.
-- Un admin ne peut pas modifier son propre rôle. L'application garde toujours au moins un admin.
-
 ## Développement sans Docker pour l'API
 
 ```bash
