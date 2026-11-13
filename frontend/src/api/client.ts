@@ -1,5 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
-const TOKEN_KEY = 'eventflow_token'
+const TOKEN_KEY = 'coord_events_token'
 
 // Erreur renvoyée par l'API : le back répond { "error": "message" } avec un code HTTP
 export class ApiError extends Error {

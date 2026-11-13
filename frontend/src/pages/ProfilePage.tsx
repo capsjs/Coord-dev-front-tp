@@ -1,4 +1,5 @@
 import { useAuth } from '../auth/useAuth'
+import { RoleBadge } from '../components/RoleBadge'
 
 export function ProfilePage() {
   const { user } = useAuth()
@@ -8,13 +9,13 @@ export function ProfilePage() {
   return (
     <section className="card">
       <h1>Mon profil</h1>
-      <dl>
+      <dl className="details">
         <dt>Nom</dt>
         <dd>{user.name}</dd>
         <dt>Email</dt>
         <dd>{user.email}</dd>
         <dt>Rôle</dt>
-        <dd>{user.role}</dd>
+        <dd><RoleBadge role={user.role} /></dd>
       </dl>
     </section>
   )

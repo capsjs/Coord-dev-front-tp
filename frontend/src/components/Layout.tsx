@@ -1,11 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/useAuth'
-
-const ROLE_LABELS = {
-  admin: 'Admin',
-  organizer: 'Organisateur',
-  participant: 'Participant',
-}
+import { RoleBadge } from './RoleBadge'
 
 export function Layout() {
   const { user, logout } = useAuth()
@@ -13,20 +8,24 @@ export function Layout() {
   return (
     <>
       <header className="header">
-        <Link to="/" className="logo">EventFlow</Link>
+        <Link to="/" className="logo">
+          Coord<span>Events</span>
+        </Link>
         <nav className="nav">
           <NavLink to="/events">Événements</NavLink>
           {user ? (
             <>
-              <NavLink to="/profile">
-                {user.name} ({ROLE_LABELS[user.role]})
+              <NavLink to="/profile" className="nav-user">
+                {user.name} <RoleBadge role={user.role} />
               </NavLink>
-              <button type="button" onClick={logout}>Déconnexion</button>
+              <button type="button" className="button-secondary" onClick={logout}>
+                Déconnexion
+              </button>
             </>
           ) : (
             <>
               <NavLink to="/login">Connexion</NavLink>
-              <NavLink to="/register">Inscription</NavLink>
+              <Link to="/register" className="button">Inscription</Link>
             </>
           )}
         </nav>
