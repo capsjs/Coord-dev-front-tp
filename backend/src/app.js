@@ -1,0 +1,31 @@
+import express from 'express';
+import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import { config } from './config.js';
+import { errorHandler, notFound } from './errors.js';
+import { openapiSpec } from './openapi.js';
+import authRoutes from './routes/auth.js';
+import adminRoutes from './routes/admin.js';
+
+export function createApp() {
+  const app = express();
+  app.use(cors({ origin: config.corsOrigins }));
+  app.use(express.json({ limit: '100kb' }));
+
+  app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+  app.use('/api/auth', authRoutes);
+  app.use('/api/admin', adminRoutes);
+
+  app.get('/api/docs.json', (_req, res) => res.json(openapiSpec));
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec, {
+    customSiteTitle: 'Coord Events — API',
+    swaggerOptions: { persistAuthorization: true },
+  }));
+  app.get('/', (_req, res) => res.redirect('/api/docs'));
+
+  app.use('/api', () => {
+    throw notFound('Route inconnue');
+  });
+  app.use(errorHandler);
+  return app;
+}

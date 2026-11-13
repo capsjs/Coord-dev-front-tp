@@ -1,0 +1,190 @@
+// Prérequis : l'API doit tourner (make up) avec SEED_DEMO=true.
+import { describe, it, before } from 'node:test';
+import assert from 'node:assert/strict';
+
+const API = process.env.API_URL ?? 'http://localhost:3000';
+const ADMIN = { email: process.env.ADMIN_EMAIL ?? 'admin@events.local', password: process.env.ADMIN_PASSWORD ?? 'admin1234' };
+
+async function api(method, path, { body, token } = {}) {
+  const res = await fetch(`${API}${path}`, {
+    method,
+    headers: {
+      ...(body !== undefined && { 'Content-Type': 'application/json' }),
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  return { status: res.status, body: text ? JSON.parse(text) : null };
+}
+
+const unique = () => `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+
+async function register(role = 'participant') {
+  const email = unique();
+  const res = await api('POST', '/api/auth/register', {
+    body: { name: 'Test User', email, password: 'motdepasse123', role },
+  });
+  assert.equal(res.status, 201, JSON.stringify(res.body));
+  return { ...res.body, email, password: 'motdepasse123' };
+}
+
+describe('Inscription', () => {
+  it('crée un participant par défaut et renvoie un jeton', async () => {
+    const email = unique();
+    const res = await api('POST', '/api/auth/register', { body: { name: 'Alice', email, password: 'motdepasse123' } });
+    assert.equal(res.status, 201);
+    assert.ok(res.body.token);
+    assert.equal(res.body.user.role, 'participant');
+    assert.equal(res.body.user.email, email);
+    assert.equal(res.body.user.password_hash, undefined, 'le hash ne doit jamais sortir');
+  });
+
+  it('accepte le rôle organizer', async () => {
+    const { user } = await register('organizer');
+    assert.equal(user.role, 'organizer');
+  });
+
+  it("refuse de s'inscrire en admin", async () => {
+    const res = await api('POST', '/api/auth/register', {
+      body: { name: 'Pirate', email: unique(), password: 'motdepasse123', role: 'admin' },
+    });
+    assert.equal(res.status, 400);
+  });
+
+  it('refuse un email déjà utilisé, sans tenir compte de la casse', async () => {
+    const { email } = await register();
+    const res = await api('POST', '/api/auth/register', {
+      body: { name: 'Doublon', email: email.toUpperCase(), password: 'motdepasse123' },
+    });
+    assert.equal(res.status, 409);
+  });
+
+  it('valide les champs', async () => {
+    const cases = [
+      { name: 'A', email: unique(), password: 'motdepasse123' },
+      { name: 'Alice', email: 'pas-un-email', password: 'motdepasse123' },
+      { name: 'Alice', email: unique(), password: 'court' },
+      {},
+    ];
+    for (const body of cases) {
+      const res = await api('POST', '/api/auth/register', { body });
+      assert.equal(res.status, 400, `attendu 400 pour ${JSON.stringify(body)}`);
+      assert.ok(res.body.error);
+    }
+  });
+});
+
+describe('Connexion', () => {
+  it("connecte l'admin créé au démarrage", async () => {
+    const res = await api('POST', '/api/auth/login', { body: ADMIN });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.user.role, 'admin');
+  });
+
+  it('refuse un mauvais mot de passe ou un email inconnu avec le même message', async () => {
+    const wrongPwd = await api('POST', '/api/auth/login', { body: { email: ADMIN.email, password: 'mauvais' } });
+    const unknown = await api('POST', '/api/auth/login', { body: { email: unique(), password: 'mauvais' } });
+    assert.equal(wrongPwd.status, 401);
+    assert.equal(unknown.status, 401);
+    assert.equal(wrongPwd.body.error, unknown.body.error);
+  });
+
+  it('exige un jeton valide sur /me', async () => {
+    assert.equal((await api('GET', '/api/auth/me')).status, 401);
+    assert.equal((await api('GET', '/api/auth/me', { token: 'faux.jeton.jwt' })).status, 401);
+  });
+});
+
+describe('Mon compte', () => {
+  it('lit et modifie le profil', async () => {
+    const { token } = await register();
+    const me = await api('GET', '/api/auth/me', { token });
+    assert.equal(me.status, 200);
+
+    const newEmail = unique();
+    const upd = await api('PATCH', '/api/auth/me', { token, body: { name: 'Nouveau Nom', email: newEmail } });
+    assert.equal(upd.status, 200);
+    assert.equal(upd.body.name, 'Nouveau Nom');
+    assert.equal(upd.body.email, newEmail);
+
+    assert.equal((await api('PATCH', '/api/auth/me', { token, body: {} })).status, 400);
+    assert.equal((await api('PATCH', '/api/auth/me', { token, body: { email: ADMIN.email } })).status, 409);
+  });
+
+  it('change le mot de passe', async () => {
+    const { token, email, password } = await register();
+    const bad = await api('PUT', '/api/auth/me/password', { token, body: { currentPassword: 'faux', newPassword: 'nouveaumdp123' } });
+    assert.equal(bad.status, 401);
+
+    const ok = await api('PUT', '/api/auth/me/password', { token, body: { currentPassword: password, newPassword: 'nouveaumdp123' } });
+    assert.equal(ok.status, 204);
+    assert.equal((await api('POST', '/api/auth/login', { body: { email, password } })).status, 401);
+    assert.equal((await api('POST', '/api/auth/login', { body: { email, password: 'nouveaumdp123' } })).status, 200);
+  });
+
+  it('supprime son compte (mot de passe exigé) et invalide le jeton', async () => {
+    const { token, password } = await register();
+    assert.equal((await api('DELETE', '/api/auth/me', { token, body: { password: 'faux' } })).status, 401);
+    assert.equal((await api('DELETE', '/api/auth/me', { token, body: { password } })).status, 204);
+    assert.equal((await api('GET', '/api/auth/me', { token })).status, 401);
+  });
+});
+
+describe('Administration des comptes', () => {
+  let adminToken;
+  before(async () => {
+    adminToken = (await api('POST', '/api/auth/login', { body: ADMIN })).body.token;
+  });
+
+  it('est interdite aux non-admins', async () => {
+    const { token } = await register('organizer');
+    assert.equal((await api('GET', '/api/admin/users', { token })).status, 403);
+    assert.equal((await api('GET', '/api/admin/users')).status, 401);
+  });
+
+  it('liste et filtre les comptes par rôle', async () => {
+    const all = await api('GET', '/api/admin/users', { token: adminToken });
+    assert.equal(all.status, 200);
+    assert.ok(all.body.length >= 3);
+    const orgas = await api('GET', '/api/admin/users?role=organizer', { token: adminToken });
+    assert.ok(orgas.body.every((u) => u.role === 'organizer'));
+    assert.equal((await api('GET', '/api/admin/users?role=roi', { token: adminToken })).status, 400);
+  });
+
+  it("change le rôle d'un compte, pris en compte immédiatement", async () => {
+    const { token, user } = await register();
+    const res = await api('PATCH', `/api/admin/users/${user.id}`, { token: adminToken, body: { role: 'organizer' } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.role, 'organizer');
+    assert.equal((await api('GET', '/api/auth/me', { token })).body.role, 'organizer');
+  });
+
+  it("protège l'admin contre lui-même", async () => {
+    const me = (await api('GET', '/api/auth/me', { token: adminToken })).body;
+    assert.equal((await api('PATCH', `/api/admin/users/${me.id}`, { token: adminToken, body: { role: 'participant' } })).status, 400);
+    assert.equal((await api('DELETE', `/api/admin/users/${me.id}`, { token: adminToken })).status, 400);
+  });
+
+  it('supprime un compte', async () => {
+    const { user } = await register();
+    assert.equal((await api('DELETE', `/api/admin/users/${user.id}`, { token: adminToken })).status, 204);
+    assert.equal((await api('GET', `/api/admin/users/${user.id}`, { token: adminToken })).status, 404);
+  });
+});
+
+describe('Divers', () => {
+  it('sert la doc Swagger', async () => {
+    const spec = await api('GET', '/api/docs.json');
+    assert.equal(spec.status, 200);
+    assert.equal(spec.body.openapi, '3.0.3');
+    const ui = await fetch(`${API}/api/docs/`);
+    assert.equal(ui.status, 200);
+  });
+
+  it('renvoie du JSON pour une route inconnue et un JSON invalide', async () => {
+    assert.equal((await api('GET', '/api/nexiste-pas')).status, 404);
+    const res = await fetch(`${API}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{oups' });
+    assert.equal(res.status, 400);
+  });
+});
