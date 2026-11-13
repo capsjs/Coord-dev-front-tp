@@ -2,7 +2,7 @@ Branche créée à partir de Jira
 
 # Coord Events : gestionnaire d'événements
 
-API back-end d'un gestionnaire d'événements, avec trois rôles :
+Gestionnaire d'événements : API back-end (`backend/`) et interface web (`frontend/`), avec trois rôles :
 
 | Rôle          | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
@@ -10,7 +10,9 @@ API back-end d'un gestionnaire d'événements, avec trois rôles :
 | `organizer`   | Crée et gère des événements *(à venir)*                       |
 | `participant` | S'inscrit aux événements *(à venir)*                          |
 
-**Stack** : Node.js 22 · Express 5 · MySQL 8.4 · JWT · Docker Compose
+**Stack back** : Node.js 22 · Express 5 · MySQL 8.4 · JWT · Docker Compose
+
+**Stack front** : React 19 · TypeScript · Vite · React Router
 
 > État actuel : **comptes et connexion** uniquement. Les événements arrivent ensuite.
 
@@ -67,6 +69,18 @@ cp .env.example .env
 ```
 
 Pour repartir d'une base vide : `make reset`.
+
+## Front-end
+
+```bash
+make up                 # l'API doit tourner
+cd frontend
+cp .env.example .env
+npm install
+npm run dev             # http://localhost:5173
+```
+
+Détails (pages, authentification, structure) : [`frontend/README.md`](frontend/README.md).
 
 ## Routes de l'API
 
@@ -129,6 +143,7 @@ backend/
 │       └── admin.js        # /api/admin/*
 ├── test/auth.test.js
 └── Dockerfile
+frontend/                   # interface React (voir frontend/README.md)
 docker-compose.yml
 Makefile                    # raccourcis : make up, make test…
 ```

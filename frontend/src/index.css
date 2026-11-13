@@ -1,0 +1,276 @@
+/* Identité Coord Events : bleu nuit + accent corail, une couleur par rôle */
+:root {
+  --primary: #1e3a5f;
+  --primary-hover: #16304f;
+  --accent: #f0643c;
+  --text: #1c2430;
+  --muted: #5f6b7a;
+  --bg: #f4f6f9;
+  --surface: #fff;
+  --border: #dde3ea;
+  --error: #c62828;
+  --error-bg: #fdecea;
+
+  /* Rôles du back */
+  --role-admin: #c62828;
+  --role-admin-bg: #fdecea;
+  --role-organizer: #6a3fc8;
+  --role-organizer-bg: #f0eafc;
+  --role-participant: #1f7a4d;
+  --role-participant-bg: #e6f4ec;
+
+  --radius: 10px;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.04);
+
+  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1 {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+a {
+  color: var(--primary);
+}
+
+/* En-tête */
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.logo span,
+.hero h1 span {
+  color: var(--accent);
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.nav a:not(.button) {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav a.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-user {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Boutons */
+button,
+.button,
+.button-secondary {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+button,
+.button {
+  color: #fff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+button:hover,
+.button:hover {
+  background: var(--primary-hover);
+}
+
+.button-secondary,
+button.button-secondary {
+  color: var(--primary);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.button-secondary:hover,
+button.button-secondary:hover {
+  background: var(--bg);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Badges de rôle */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.badge-admin {
+  color: var(--role-admin);
+  background: var(--role-admin-bg);
+}
+
+.badge-organizer {
+  color: var(--role-organizer);
+  background: var(--role-organizer-bg);
+}
+
+.badge-participant {
+  color: var(--role-participant);
+  background: var(--role-participant-bg);
+}
+
+/* Accueil */
+.hero {
+  padding: 3rem 0 2rem;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 1.15rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.role-card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.role-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+/* Cartes et formulaires */
+.card {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.form label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+}
+
+.form fieldset {
+  display: flex;
+  gap: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+input {
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.error {
+  padding: 0.5rem 0.75rem;
+  color: var(--error);
+  background: var(--error-bg);
+  border-radius: var(--radius);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1.5rem;
+}
+
+.details dt {
+  color: var(--muted);
+}
+
+.details dd {
+  margin: 0;
+}
