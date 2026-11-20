@@ -1,8 +1,12 @@
 # Surcharge utilisée par `make coverage` : l'API écrit sa couverture de code (V8) dans backend/coverage/tmp.
-# Usage : docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d db backend
+# Usage : HOST_UID=$(id -u) HOST_GID=$(id -g) docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d db backend
 services:
   backend:
+    # Même utilisateur que la machine hôte : les fichiers de couverture lui appartiennent (indispensable sous Linux / en CI).
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     environment:
       NODE_V8_COVERAGE: /app/coverage/tmp
     volumes:
       - ./backend/coverage:/app/coverage
+    # Laisse à l'API le temps de s'arrêter proprement : Node n'écrit la couverture qu'à une sortie normale.
+    stop_grace_period: 30s
