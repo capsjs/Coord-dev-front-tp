@@ -1,0 +1,66 @@
+#!/bin/sh
+# Hook pre-commit de l'équipe : vérifie les fichiers du commit avant de l'accepter.
+# Activation (une fois par clone) : make hooks
+# Contournement ponctuel (à éviter) : git commit --no-verify
+
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT" || exit 1
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$STAGED" ] && exit 0
+
+FAILED=0
+fail() { echo "  ✗ $1"; FAILED=1; }
+ok() { echo "  ✓ $1"; }
+skip() { echo "  - $1 (ignoré : $2)"; }
+
+echo "pre-commit : vérification des fichiers modifiés…"
+
+# 1. docker-compose.yml : syntaxe et structure (indentation, clés mal placées…)
+if echo "$STAGED" | grep -qx 'docker-compose.yml'; then
+  if command -v docker >/dev/null 2>&1; then
+    if OUT=$(docker compose config -q 2>&1); then
+      ok "docker-compose.yml"
+    else
+      fail "docker-compose.yml invalide :"
+      echo "$OUT" | sed 's/^/      /'
+    fi
+  else
+    skip "docker-compose.yml" "docker introuvable"
+  fi
+fi
+
+# 2. Back : ESLint sur les fichiers JS modifiés
+BACK_FILES=$(echo "$STAGED" | grep -E '^backend/.*\.(js|mjs)$' | sed 's#^backend/##')
+if [ -n "$BACK_FILES" ]; then
+  if [ -d backend/node_modules ]; then
+    # shellcheck disable=SC2086
+    if (cd backend && npx --no-install eslint $BACK_FILES); then
+      ok "lint back"
+    else
+      fail "lint back (corrigez les erreurs ci-dessus)"
+    fi
+  else
+    skip "lint back" "lancez make install"
+  fi
+fi
+
+# 3. Front : oxlint sur les fichiers TS/JS modifiés
+FRONT_FILES=$(echo "$STAGED" | grep -E '^frontend/.*\.(ts|tsx|js|jsx)$' | sed 's#^frontend/##')
+if [ -n "$FRONT_FILES" ]; then
+  if [ -d frontend/node_modules ]; then
+    # shellcheck disable=SC2086
+    if (cd frontend && npx --no-install oxlint $FRONT_FILES); then
+      ok "lint front"
+    else
+      fail "lint front (corrigez les erreurs ci-dessus)"
+    fi
+  else
+    skip "lint front" "lancez npm install dans frontend/"
+  fi
+fi
+
+if [ "$FAILED" -ne 0 ]; then
+  echo "Commit refusé. Corrigez puis relancez git commit."
+  exit 1
+fi

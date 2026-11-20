@@ -29,6 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Échoue tout de suite si docker-compose.yml est invalide (indentation, clé mal placée…).
+      - name: Valider docker-compose.yml
+        working-directory: .
+        run: docker compose config -q
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22

@@ -45,6 +45,7 @@ Tapez `make` seul pour afficher la liste.
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
 | `make reset`   | **Vide la base** et redémarre (comptes de démo recréés)        |
 | `make install` | Installe les dépendances npm du back en local                  |
+| `make hooks`   | Active le hook pre-commit (compose + lint vérifiés à chaque commit) |
 
 | Service          | URL                                |
 | ---------------- | ---------------------------------- |
