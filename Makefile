@@ -8,12 +8,12 @@ help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "} {printf "  \033[36mmake %-10s\033[0m %s\n", $$1, $$2}'
 
-up: ## Démarre MySQL + l'API (build si besoin) et attend qu'elle réponde
+up: ## Démarre MySQL + API + frontend
 	$(COMPOSE) up -d --build
 	@echo "Attente de l'API..."
 	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
 	@curl -sf $(API_URL)/api/health >/dev/null \
-		&& echo "API prête : $(API_URL)/api   |   Swagger : $(API_URL)/api/docs" \
+		&& echo "API prête : $(API_URL)/api   |   Swagger : $(API_URL)/api/docs   |   Frontend : http://localhost:8080" \
 		|| (echo "L'API ne répond pas, voir : make logs" && exit 1)
 
 down: ## Arrête les conteneurs (les données sont conservées)
