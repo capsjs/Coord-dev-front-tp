@@ -33,11 +33,11 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin1234}
       SEED_DEMO: ${SEED_DEMO:-true}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:8080}
-      depends_on:
-        db:
-          condition: service_healthy
-      ports:
-        - "${API_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-3000}:3000"
 
   frontend:
     build:
