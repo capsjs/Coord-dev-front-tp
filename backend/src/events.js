@@ -45,3 +45,17 @@ export async function createEvent({ title, description, date, location, price, c
   );
   return getEventOr404(result.insertId);
 }
+
+export async function updateEvent(id, { title, description, date, location, price, currency }) {
+  await query(
+    `UPDATE events SET title = ?, description = ?, date = ?, location = ?, price = ?, currency = ?
+     WHERE id = ?`,
+    [title, description, date, location, price, currency, id],
+  );
+  return getEventOr404(id);
+}
+
+/** Les inscriptions liées seront supprimées par la base (clé étrangère ON DELETE CASCADE, Sprint 3). */
+export async function deleteEvent(id) {
+  await query('DELETE FROM events WHERE id = ?', [id]);
+}

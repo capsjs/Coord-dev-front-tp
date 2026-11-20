@@ -104,6 +104,8 @@ Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`).
 | `GET`    | `/api/events`            | public    | Événements à venir, du plus proche au plus lointain |
 | `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur compris)  |
 | `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
+| `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
+| `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement |
 
 Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont renvoyées au format `{ "error": "message" }`.
 

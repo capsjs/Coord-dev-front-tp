@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { createEvent, getEventOr404, listUpcomingEvents, toPublicEvent } from '../events.js';
+import { createEvent, deleteEvent, getEventOr404, listUpcomingEvents, toPublicEvent, updateEvent } from '../events.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
+import { requireEventManager } from '../middleware/eventAccess.js';
 import { parseEventInput, requireId } from '../validation.js';
 
 const router = Router();
@@ -20,6 +21,19 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAuth, requireRole('organizer', 'admin'), async (req, res) => {
   const event = await createEvent(parseEventInput(req.body), req.user.id);
   res.status(201).json(toPublicEvent(event));
+});
+
+// F02 — Modifier un événement : mêmes règles de validation qu'à la création.
+// Réservé à l'organisateur de l'événement ou à un admin (requireEventManager : 404 puis 403).
+router.put('/:id', requireAuth, requireEventManager, async (req, res) => {
+  const event = await updateEvent(req.event.id, parseEventInput(req.body));
+  res.json(toPublicEvent(event));
+});
+
+// F03 — Supprimer un événement. Réservé à l'organisateur de l'événement ou à un admin.
+router.delete('/:id', requireAuth, requireEventManager, async (req, res) => {
+  await deleteEvent(req.event.id);
+  res.status(204).end();
 });
 
 export default router;
