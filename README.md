@@ -152,6 +152,8 @@ make test
 
 Chaque lancement crée des comptes de test jetables en base. `make reset` les efface.
 
+Tests unitaires (règles métier pures, sans API ni base) : `cd backend && npm run test:unit`. Ils tournent aussi dans le job *Lint* de la CI.
+
 ## Structure
 
 ```
@@ -169,12 +171,15 @@ backend/
 │   ├── validation.js       # validation des entrées
 │   ├── errors.js           # erreurs HTTP + middleware d'erreur
 │   ├── openapi.js          # charge openapi.yaml pour Swagger
+│   ├── permissions.js      # règle « organisateur ou admin » (F08)
 │   ├── middleware/auth.js  # JWT, requireAuth, requireRole
+│   ├── middleware/eventAccess.js # requireEventManager (404 / 403)
 │   └── routes/
 │       ├── auth.js         # /api/auth/*
 │       ├── admin.js        # /api/admin/*
 │       └── events.js       # /api/events/*
-├── test/                   # tests d'intégration (auth, événements) + helpers.js
+├── test/                   # tests d'intégration (auth, événements, contrat) + helpers.js
+│   └── unit/               # tests unitaires (permissions…)
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
 docker-compose.yml

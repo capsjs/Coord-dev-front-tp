@@ -42,6 +42,8 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run lint
+      # Tests unitaires : pas besoin de Docker ni de base, retour en quelques secondes.
+      - run: npm run test:unit
 
   test:
     name: Build et tests d'intégration

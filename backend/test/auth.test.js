@@ -2,7 +2,11 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 
+import jwt from 'jsonwebtoken';
+
 import { API, ADMIN, api, unique, register } from './helpers.js';
+
+const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-a-changer';
 
 describe('Inscription', () => {
   it('crée un participant par défaut et renvoie un jeton', async () => {
@@ -63,6 +67,22 @@ describe('Connexion', () => {
     assert.equal(wrongPwd.status, 401);
     assert.equal(unknown.status, 401);
     assert.equal(wrongPwd.body.error, unknown.body.error);
+  });
+
+  it('distingue une session expirée (pour que le front redirige vers la connexion)', async () => {
+    const { user } = await register();
+    const expired = jwt.sign({ sub: user.id, role: user.role, exp: Math.floor(Date.now() / 1000) - 60 }, JWT_SECRET);
+    const res = await api('GET', '/api/auth/me', { token: expired });
+    assert.equal(res.status, 401);
+    assert.equal(res.body.error, 'Session expirée : reconnectez-vous');
+  });
+
+  it('refuse un jeton falsifié', async () => {
+    const { user } = await register();
+    const forged = jwt.sign({ sub: user.id, role: 'admin' }, 'pas-le-bon-secret');
+    const res = await api('GET', '/api/auth/me', { token: forged });
+    assert.equal(res.status, 401);
+    assert.equal(res.body.error, 'Jeton invalide');
   });
 
   it('exige un jeton valide sur /me', async () => {
