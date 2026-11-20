@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
+import * as OpenApiValidator from 'express-openapi-validator';
 import { config } from './config.js';
 import { errorHandler, notFound } from './errors.js';
 import { openapiSpec } from './openapi.js';
@@ -12,6 +13,19 @@ export function createApp() {
   const app = express();
   app.use(cors({ origin: config.corsOrigins }));
   app.use(express.json({ limit: '100kb' }));
+
+  // Le contrat (openapi.yaml) est appliqué à chaque requête : corps, paramètres, formats (date-time…).
+  // La doc Swagger n'est pas dans le contrat, elle est donc exclue.
+  app.use(
+    OpenApiValidator.middleware({
+      apiSpec: openapiSpec,
+      validateRequests: { coerceTypes: false },
+      validateResponses: config.validateResponses,
+      validateSecurity: false, // l'authentification et les rôles restent gérés par middleware/auth.js
+      ignorePaths: /^\/api\/docs/,
+      ignoreUndocumented: true, // une route absente du contrat tombe sur le 404 « Route inconnue »
+    }),
+  );
 
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
   app.use('/api/auth', authRoutes);

@@ -115,6 +115,12 @@ Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont re
 | Contrat valide, règles OpenAPI recommandées et règles de l'équipe ([`backend/.spectral.yaml`](backend/.spectral.yaml) : champs en camelCase, 401 documenté sur les routes protégées) | Spectral | `make lint` |
 | Aucun changement cassant par rapport à la branche cible | oasdiff | — |
 
+**Conformité de l'API au contrat** (à l'exécution, via `express-openapi-validator`) :
+
+- **Requêtes** : toute requête non conforme à `openapi.yaml` est refusée en `400` avec un message clair (ex. `Champ « date » invalide : doit respecter le format date-time`). Aucune conversion implicite : `"10"` n'est pas accepté pour un nombre.
+- **Réponses** : avec `VALIDATE_RESPONSES=true` (par défaut en dev, dans Docker Compose et en CI), une réponse non conforme au contrat devient une erreur `500`, loguée avec le préfixe `[contrat]`. Les tests d'intégration échouent donc dès que le code s'écarte du contrat. À désactiver en production.
+- Tests dédiés : [`backend/test/contract.test.js`](backend/test/contract.test.js).
+
 **Changement cassant** : tout ce qui casse un client existant (supprimer ou renommer une route ou un champ de réponse, rendre obligatoire un champ de requête, restreindre un type…). Ajouter une route ou un champ optionnel n'est pas cassant.
 
 ### Versioning et dépréciation
