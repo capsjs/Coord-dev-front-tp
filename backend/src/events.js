@@ -10,13 +10,25 @@ export const toPublicEvent = (e) => ({
   price: Number(e.price), // DECIMAL est renvoyé en chaîne par mysql2
   currency: e.currency,
   organizerId: e.organizer_id,
+  organizer: { id: e.organizer_id, name: e.organizer_name },
   createdAt: e.created_at,
   updatedAt: e.updated_at,
 });
 
+// Chaque événement est renvoyé avec le nom de son organisateur.
+const SELECT_EVENTS = `
+  SELECT e.*, u.name AS organizer_name
+  FROM events e
+  JOIN users u ON u.id = e.organizer_id`;
+
 export async function findEventById(id) {
-  const [event] = await query('SELECT * FROM events WHERE id = ?', [id]);
+  const [event] = await query(`${SELECT_EVENTS} WHERE e.id = ?`, [id]);
   return event ?? null;
+}
+
+/** Événements dont la date n'est pas encore passée, du plus proche au plus lointain. */
+export async function listUpcomingEvents() {
+  return query(`${SELECT_EVENTS} WHERE e.date > ? ORDER BY e.date ASC, e.id ASC`, [new Date()]);
 }
 
 export async function getEventOr404(id) {

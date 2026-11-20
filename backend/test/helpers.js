@@ -27,3 +27,22 @@ export async function register(role = 'participant') {
   assert.equal(res.status, 201, JSON.stringify(res.body));
   return { ...res.body, email, password: 'motdepasse123' };
 }
+
+// Accès direct à MySQL (port exposé par Docker Compose) pour préparer des cas impossibles via l'API,
+// comme un événement déjà passé.
+export async function withDb(fn) {
+  const { default: mysql } = await import('mysql2/promise');
+  const conn = await mysql.createConnection({
+    host: process.env.DB_HOST ?? '127.0.0.1',
+    port: Number(process.env.DB_HOST_PORT ?? 3307),
+    user: process.env.DB_USER ?? 'events',
+    password: process.env.DB_PASSWORD ?? 'events',
+    database: process.env.DB_NAME ?? 'events',
+    timezone: 'Z',
+  });
+  try {
+    return await fn(conn);
+  } finally {
+    await conn.end();
+  }
+}

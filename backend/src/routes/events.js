@@ -1,9 +1,20 @@
 import { Router } from 'express';
-import { createEvent, toPublicEvent } from '../events.js';
+import { createEvent, getEventOr404, listUpcomingEvents, toPublicEvent } from '../events.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { parseEventInput } from '../validation.js';
+import { parseEventInput, requireId } from '../validation.js';
 
 const router = Router();
+
+// F04 — Liste publique des événements à venir, triés par date croissante.
+router.get('/', async (_req, res) => {
+  const events = await listUpcomingEvents();
+  res.json(events.map(toPublicEvent));
+});
+
+// F05 — Fiche publique d'un événement (y compris passé).
+router.get('/:id', async (req, res) => {
+  res.json(toPublicEvent(await getEventOr404(requireId(req.params.id))));
+});
 
 // F01 — Créer un événement : l'utilisateur connecté en devient l'organisateur.
 router.post('/', requireAuth, requireRole('organizer', 'admin'), async (req, res) => {

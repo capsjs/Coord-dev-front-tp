@@ -4,7 +4,7 @@ info:
   contact:
     name: Équipe Coord Events
     url: https://github.com/capsjs/Coord-dev-front-tp
-  version: 1.0.1
+  version: 1.1.0
   description: |
     Contrat d'API du MVP de Coord Events : comptes, événements et inscriptions.
 
@@ -580,7 +580,7 @@ components:
 
     Event:
       type: object
-      required: [id, title, description, date, location, price, currency, organizerId, createdAt, updatedAt]
+      required: [id, title, description, date, location, price, currency, organizerId, organizer, createdAt, updatedAt]
       properties:
         id: { type: integer, example: 1 }
         title: { type: string, example: Meetup JavaScript Lyon }
@@ -590,8 +590,17 @@ components:
         price: { type: number, example: 10 }
         currency: { type: string, example: EUR }
         organizerId: { type: integer, description: Id de l'utilisateur qui a créé l'événement, example: 2 }
+        organizer: { $ref: '#/components/schemas/EventOrganizer' }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
+
+    EventOrganizer:
+      type: object
+      description: Organisateur de l'événement (pour l'afficher sur la liste et la fiche).
+      required: [id, name]
+      properties:
+        id: { type: integer, example: 2 }
+        name: { type: string, example: Olivia Orga }
 
     Registration:
       type: object
