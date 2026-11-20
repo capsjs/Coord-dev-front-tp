@@ -161,6 +161,14 @@ describe('Administration des comptes', () => {
     assert.equal((await api('DELETE', `/api/admin/users/${me.id}`, { token: adminToken })).status, 400);
   });
 
+  it("supprime un autre admin tant qu'il en reste au moins un", async () => {
+    // Admin temporaire créé pour le test : l'admin de départ n'est jamais modifié.
+    const { user } = await register();
+    const promoted = await api('PATCH', `/api/admin/users/${user.id}`, { token: adminToken, body: { role: 'admin' } });
+    assert.equal(promoted.body.role, 'admin');
+    assert.equal((await api('DELETE', `/api/admin/users/${user.id}`, { token: adminToken })).status, 204);
+  });
+
   it('supprime un compte', async () => {
     const { user } = await register();
     assert.equal((await api('DELETE', `/api/admin/users/${user.id}`, { token: adminToken })).status, 204);

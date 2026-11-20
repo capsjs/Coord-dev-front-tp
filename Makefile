@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -52,6 +52,39 @@ hooks: ## Active le hook pre-commit de l'équipe (à lancer une fois par clone)
 test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 	@test -d backend/node_modules || (cd backend && npm install)
 	cd backend && API_URL=$(API_URL) npm test
+
+# Les données de couverture sont produites dans le conteneur (chemins /app/src/...) : les tests unitaires
+# et le rapport tournent donc dans un conteneur Node qui monte backend/ sur /app, pour que les chemins correspondent.
+# --user : les fichiers créés appartiennent à l'utilisateur courant (sinon root sous Linux, notamment en CI).
+HOST_UID := $(shell id -u)
+HOST_GID := $(shell id -g)
+NODE_IN_APP := docker run --rm --user "$(HOST_UID):$(HOST_GID)" -v "$(CURDIR)/backend:/app" -w /app node:22-alpine
+COMPOSE_COVERAGE := HOST_UID=$(HOST_UID) HOST_GID=$(HOST_GID) $(COMPOSE) -f docker-compose.yml -f docker-compose.coverage.yml
+
+coverage: ## Mesure la couverture du back (tests d'intégration + unitaires) → backend/coverage/report/index.html
+	@test -d backend/node_modules || (cd backend && npm install)
+	@# Repart d'une mesure vierge (suppression limitée à backend/coverage).
+	$(NODE_IN_APP) node -e "require('fs').rmSync('coverage', { recursive: true, force: true })"
+	mkdir -p backend/coverage/tmp
+	$(COMPOSE_COVERAGE) up -d --build db backend
+	@echo "Attente de l'API..."
+	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
+	cd backend && API_URL=$(API_URL) npm test
+	@# Arrêt propre (SIGTERM) : Node écrit la couverture à la sortie du processus.
+	$(COMPOSE_COVERAGE) stop backend
+	@# Contrôle : sans fichier de l'API, le rapport ne contiendrait que les tests unitaires.
+	@if ! ls backend/coverage/tmp/*.json >/dev/null 2>&1; then \
+		echo "ERREUR : l'API n'a écrit aucune donnée de couverture."; \
+		echo "Code de sortie du conteneur : $$($(COMPOSE) ps -a -q backend | xargs docker inspect -f '{{.State.ExitCode}}') (137 = arrêt forcé)"; \
+		$(COMPOSE) logs --tail 30 backend; \
+		ls -la backend/coverage backend/coverage/tmp; \
+		exit 1; \
+	fi
+	$(NODE_IN_APP) env NODE_V8_COVERAGE=/app/coverage/tmp node --test "test/unit/**/*.test.js"
+	$(NODE_IN_APP) node node_modules/c8/bin/c8.js report
+	@echo "Rapport HTML : backend/coverage/report/index.html"
+	@# Relance l'API normalement (sans mesure de couverture).
+	$(COMPOSE) up -d backend >/dev/null
 
 lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)

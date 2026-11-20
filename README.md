@@ -40,6 +40,7 @@ Tapez `make` seul pour afficher la liste.
 | `make health`  | Vérifie que l'API répond                                       |
 | `make docs`    | Ouvre le Swagger dans le navigateur                            |
 | `make test`    | Lance les tests d'intégration (l'API doit tourner)             |
+| `make coverage` | Tests + mesure de la couverture du back (rapport HTML dans `backend/coverage/report/`) |
 | `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
 | `make db`      | Ouvre la console MySQL                                         |
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
@@ -156,6 +157,8 @@ Chaque lancement crée des comptes de test jetables en base. `make reset` les ef
 
 Tests unitaires (règles métier pures, sans API ni base) : `cd backend && npm run test:unit`. Ils tournent aussi dans le job *Lint* de la CI.
 
+**Couverture de code** : `make coverage` démarre l'API en mesurant le code exécuté, lance les tests d'intégration puis unitaires, et produit un rapport (`backend/coverage/report/index.html`). Seuils minimaux dans [`backend/.c8rc.json`](backend/.c8rc.json) : 95 % des lignes, instructions et fonctions, 85 % des branches. En CI, la commande fait échouer le job sous ces seuils, affiche un résumé sur la page du workflow et publie le rapport HTML en artefact (`couverture-back`).
+
 ## Structure
 
 ```
@@ -165,7 +168,7 @@ backend/
 │   ├── index.js            # démarrage : attente MySQL, migration, seed, serveur
 │   ├── app.js              # application Express (routes, Swagger, erreurs)
 │   ├── config.js           # configuration via variables d'environnement
-│   ├── db.js               # pool MySQL, transactions, migration
+│   ├── db.js               # pool MySQL, migration
 │   ├── schema.sql          # schéma de la base
 │   ├── seed.js             # compte admin + comptes de démo
 │   ├── users.js            # accès aux données utilisateurs
@@ -181,7 +184,7 @@ backend/
 │       ├── admin.js        # /api/admin/*
 │       └── events.js       # /api/events/*
 ├── test/                   # tests d'intégration (auth, événements, contrat) + helpers.js
-│   └── unit/               # tests unitaires (permissions…)
+│   └── unit/               # tests unitaires (permissions, validation, erreurs)
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
 docker-compose.yml
