@@ -1,0 +1,590 @@
+openapi: 3.0.3
+info:
+  title: Coord Events — API
+  version: 1.0.0
+  description: |
+    Contrat d'API du MVP de Coord Events : comptes, événements et inscriptions.
+
+    **Rôles** : `admin`, `organizer` (créateur d'événements), `participant`.
+
+    **Authentification** : appelez `POST /api/auth/login`, copiez le `token` de la réponse,
+    puis cliquez sur **Authorize** et collez-le. Les routes protégées attendent l'en-tête
+    `Authorization: Bearer <token>`.
+
+    **Conventions**
+    - Corps et réponses en JSON, champs en camelCase.
+    - Dates au format ISO 8601 en UTC (ex. `2026-12-15T18:00:00.000Z`).
+    - Toute erreur renvoie `{ "error": "message lisible" }` avec le code HTTP adapté.
+    - Une suppression réussie renvoie `204` sans contenu.
+servers:
+  - url: /
+    description: Serveur courant
+tags:
+  - name: Santé
+  - name: Auth
+    description: Inscription, connexion et gestion de son propre compte
+  - name: Admin
+    description: Gestion des comptes (rôle admin requis)
+  - name: Événements
+    description: Consultation (public) et gestion (organisateur ou admin) des événements
+  - name: Inscriptions
+    description: Inscription et désinscription d'un participant à un événement
+
+paths:
+  /api/health:
+    get:
+      tags: [Santé]
+      summary: État de l'API
+      operationId: getHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  # ---------------------------------------------------------------- Auth
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Créer un compte
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterInput' }
+      responses:
+        '201':
+          description: Compte créé, utilisateur connecté
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Un compte existe déjà avec cet email }
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Se connecter
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginInput' }
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Identifiants incorrects
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Email ou mot de passe incorrect }
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Voir son profil
+      operationId: getMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profil
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [Auth]
+      summary: Modifier son nom et/ou son email
+      operationId: updateMe
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMeInput' }
+      responses:
+        '200':
+          description: Profil mis à jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Un compte existe déjà avec cet email }
+    delete:
+      tags: [Auth]
+      summary: Supprimer son compte
+      description: Le mot de passe est redemandé. Le dernier administrateur ne peut pas supprimer son compte.
+      operationId: deleteMe
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordInput' }
+      responses:
+        '204': { description: Compte supprimé }
+        '400':
+          description: Dernier administrateur
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: "Impossible de supprimer ce compte : c'est le dernier administrateur" }
+        '401':
+          description: Mot de passe incorrect ou jeton invalide
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Mot de passe incorrect }
+
+  /api/auth/me/password:
+    put:
+      tags: [Auth]
+      summary: Changer son mot de passe
+      operationId: changePassword
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangePasswordInput' }
+      responses:
+        '204': { description: Mot de passe modifié }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: Mot de passe actuel incorrect ou jeton invalide
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Mot de passe actuel incorrect }
+
+  /api/auth/me/registrations:
+    get:
+      tags: [Inscriptions]
+      summary: Lister les événements auxquels je suis inscrit
+      description: |
+        Permet au front de savoir s'il doit afficher « S'inscrire » ou « Se désinscrire »
+        sur une fiche. Renvoie aussi les événements passés, triés par date croissante.
+      operationId: listMyRegistrations
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Événements auxquels l'utilisateur est inscrit
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Event' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ---------------------------------------------------------------- Admin
+  /api/admin/users:
+    get:
+      tags: [Admin]
+      summary: Lister les comptes
+      operationId: listUsers
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Role' }
+      responses:
+        '200':
+          description: Liste des comptes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/admin/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Admin]
+      summary: Voir un compte
+      operationId: getUser
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Compte
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Admin]
+      summary: Changer le rôle d'un compte
+      description: Un admin ne peut pas changer son propre rôle, ni retirer le rôle du dernier admin.
+      operationId: updateUserRole
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RoleInput' }
+      responses:
+        '200':
+          description: Compte mis à jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin]
+      summary: Supprimer un compte
+      operationId: deleteUser
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Compte supprimé }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ---------------------------------------------------------------- Événements
+  /api/events:
+    get:
+      tags: [Événements]
+      summary: Lister les événements à venir
+      description: |
+        Public. Renvoie uniquement les événements dont la date n'est pas encore passée,
+        triés par date croissante (le plus proche en premier). — F04
+      operationId: listEvents
+      responses:
+        '200':
+          description: Événements à venir
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Event' }
+    post:
+      tags: [Événements]
+      summary: Créer un événement
+      description: |
+        Réservé aux rôles `organizer` et `admin`. L'utilisateur connecté devient
+        l'organisateur de l'événement (`organizerId`). La date doit être dans le futur. — F01
+      operationId: createEvent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventInput' }
+      responses:
+        '201':
+          description: Événement créé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Event' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/events/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Événements]
+      summary: Voir le détail d'un événement
+      description: Public. Fonctionne aussi pour un événement passé. — F05
+      operationId: getEvent
+      responses:
+        '200':
+          description: Événement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Event' }
+        '404': { $ref: '#/components/responses/EventNotFound' }
+    put:
+      tags: [Événements]
+      summary: Modifier un événement
+      description: |
+        Remplace tous les champs modifiables. Réservé à l'organisateur de l'événement
+        ou à un admin. La date doit être dans le futur. — F02
+      operationId: updateEvent
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventInput' }
+      responses:
+        '200':
+          description: Événement modifié
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Event' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/NotOwner' }
+        '404': { $ref: '#/components/responses/EventNotFound' }
+    delete:
+      tags: [Événements]
+      summary: Supprimer un événement
+      description: |
+        Réservé à l'organisateur de l'événement ou à un admin. Les inscriptions
+        associées sont supprimées avec l'événement. — F03
+      operationId: deleteEvent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Événement supprimé }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/NotOwner' }
+        '404': { $ref: '#/components/responses/EventNotFound' }
+
+  # ---------------------------------------------------------------- Inscriptions
+  /api/events/{id}/registrations:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags: [Inscriptions]
+      summary: M'inscrire à un événement
+      description: |
+        Réservé au rôle `participant`. Inscrit l'utilisateur connecté ; aucun corps
+        de requête. Impossible pour un événement déjà passé. — F06
+      operationId: registerToEvent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '201':
+          description: Inscription enregistrée
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Registration' }
+        '400':
+          description: Événement déjà passé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Cet événement est déjà passé }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/EventNotFound' }
+        '409':
+          description: Déjà inscrit
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Vous êtes déjà inscrit à cet événement }
+
+  /api/events/{id}/registrations/me:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags: [Inscriptions]
+      summary: Me désinscrire d'un événement
+      description: Désinscrit l'utilisateur connecté. — F07
+      operationId: unregisterFromEvent
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Désinscription effectuée }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Événement introuvable ou utilisateur non inscrit
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Vous n'êtes pas inscrit à cet événement }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+
+  responses:
+    BadRequest:
+      description: Données invalides
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Le champ « title » est requis }
+    Unauthorized:
+      description: Jeton absent, invalide ou expiré
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Authentification requise }
+    Forbidden:
+      description: Rôle insuffisant
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Accès refusé }
+    NotOwner:
+      description: Ni organisateur de l'événement, ni admin
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Seul l'organisateur de l'événement peut le modifier }
+    NotFound:
+      description: Utilisateur introuvable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Utilisateur introuvable }
+    EventNotFound:
+      description: Événement introuvable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { error: Événement introuvable }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    Role:
+      type: string
+      enum: [admin, organizer, participant]
+
+    User:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id: { type: integer, example: 2 }
+        email: { type: string, format: email, example: orga@events.local }
+        name: { type: string, example: Olivia Orga }
+        role: { $ref: '#/components/schemas/Role' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: 'JWT à envoyer dans `Authorization: Bearer <token>`'
+        user: { $ref: '#/components/schemas/User' }
+
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100, example: Jeanne Dupont }
+        email: { type: string, format: email, example: jeanne@example.com }
+        password: { type: string, format: password, minLength: 8, maxLength: 128, example: motdepasse123 }
+        role:
+          type: string
+          enum: [participant, organizer]
+          default: participant
+          description: Le rôle admin ne peut pas être choisi à l'inscription.
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: admin@events.local }
+        password: { type: string, format: password, example: admin1234 }
+
+    UpdateMeInput:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        email: { type: string, format: email }
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string, format: password }
+        newPassword: { type: string, format: password, minLength: 8, maxLength: 128 }
+
+    PasswordInput:
+      type: object
+      required: [password]
+      properties:
+        password: { type: string, format: password }
+
+    RoleInput:
+      type: object
+      required: [role]
+      properties:
+        role: { $ref: '#/components/schemas/Role' }
+
+    EventInput:
+      type: object
+      required: [title, date, location]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 150, example: Meetup JavaScript Lyon }
+        description: { type: string, maxLength: 5000, default: '', example: Soirée de talks autour de React 19. }
+        date:
+          type: string
+          format: date-time
+          description: Date et heure de début, dans le futur.
+          example: '2026-12-15T18:00:00.000Z'
+        location: { type: string, minLength: 2, maxLength: 255, example: 'La Cordée, Lyon' }
+        price: { type: number, minimum: 0, default: 0, example: 10 }
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          default: EUR
+          description: Code devise ISO 4217.
+          example: EUR
+
+    Event:
+      type: object
+      required: [id, title, description, date, location, price, currency, organizerId, createdAt, updatedAt]
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: Meetup JavaScript Lyon }
+        description: { type: string, example: Soirée de talks autour de React 19. }
+        date: { type: string, format: date-time, example: '2026-12-15T18:00:00.000Z' }
+        location: { type: string, example: 'La Cordée, Lyon' }
+        price: { type: number, example: 10 }
+        currency: { type: string, example: EUR }
+        organizerId: { type: integer, description: Id de l'utilisateur qui a créé l'événement, example: 2 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Registration:
+      type: object
+      required: [eventId, userId, createdAt]
+      properties:
+        eventId: { type: integer, example: 1 }
+        userId: { type: integer, example: 3 }
+        createdAt: { type: string, format: date-time }
