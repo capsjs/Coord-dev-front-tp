@@ -6,6 +6,7 @@ import { errorHandler, notFound } from './errors.js';
 import { openapiSpec } from './openapi.js';
 import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
+import eventRoutes from './routes/events.js';
 
 export function createApp() {
   const app = express();
@@ -15,6 +16,7 @@ export function createApp() {
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
   app.use('/api/auth', authRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/events', eventRoutes);
 
   app.get('/api/docs.json', (_req, res) => res.json(openapiSpec));
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec, {

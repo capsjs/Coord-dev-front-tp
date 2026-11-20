@@ -2,32 +2,7 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-const API = process.env.API_URL ?? 'http://localhost:3000';
-const ADMIN = { email: process.env.ADMIN_EMAIL ?? 'admin@events.local', password: process.env.ADMIN_PASSWORD ?? 'admin1234' };
-
-async function api(method, path, { body, token } = {}) {
-  const res = await fetch(`${API}${path}`, {
-    method,
-    headers: {
-      ...(body !== undefined && { 'Content-Type': 'application/json' }),
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  return { status: res.status, body: text ? JSON.parse(text) : null };
-}
-
-const unique = () => `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
-
-async function register(role = 'participant') {
-  const email = unique();
-  const res = await api('POST', '/api/auth/register', {
-    body: { name: 'Test User', email, password: 'motdepasse123', role },
-  });
-  assert.equal(res.status, 201, JSON.stringify(res.body));
-  return { ...res.body, email, password: 'motdepasse123' };
-}
+import { API, ADMIN, api, unique, register } from './helpers.js';
 
 describe('Inscription', () => {
   it('crée un participant par défaut et renvoie un jeton', async () => {
