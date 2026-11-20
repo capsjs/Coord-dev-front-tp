@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test install shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -48,6 +48,10 @@ install: ## Installe les dépendances npm du back (pour les tests / l'éditeur)
 test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 	@test -d backend/node_modules || (cd backend && npm install)
 	cd backend && API_URL=$(API_URL) npm test
+
+lint: ## Vérifie le code du back avec ESLint
+	@test -d backend/node_modules || (cd backend && npm install)
+	cd backend && npm run lint
 
 shell: ## Ouvre un shell dans le conteneur de l'API
 	$(COMPOSE) exec backend sh
