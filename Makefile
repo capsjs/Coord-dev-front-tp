@@ -55,19 +55,21 @@ test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 
 # Les données de couverture sont produites dans le conteneur (chemins /app/src/...) : les tests unitaires
 # et le rapport tournent donc dans un conteneur Node qui monte backend/ sur /app, pour que les chemins correspondent.
-NODE_IN_APP := docker run --rm -v "$(CURDIR)/backend:/app" -w /app -e NODE_V8_COVERAGE=/app/coverage/tmp node:22-alpine
+# --user : les fichiers créés appartiennent à l'utilisateur courant (sinon root sous Linux, notamment en CI).
+NODE_IN_APP := docker run --rm --user "$(shell id -u):$(shell id -g)" -v "$(CURDIR)/backend:/app" -w /app node:22-alpine
 COMPOSE_COVERAGE := $(COMPOSE) -f docker-compose.yml -f docker-compose.coverage.yml
 
 coverage: ## Mesure la couverture du back (tests d'intégration + unitaires) → backend/coverage/report/index.html
 	@test -d backend/node_modules || (cd backend && npm install)
 	@# Repart d'une mesure vierge (suppression limitée à backend/coverage).
 	$(NODE_IN_APP) node -e "require('fs').rmSync('coverage', { recursive: true, force: true })"
-	mkdir -p backend/coverage/tmp && chmod -R 777 backend/coverage
+	@# L'API tourne en tant qu'utilisateur « node » dans son conteneur : elle doit pouvoir écrire dans tmp.
+	mkdir -p backend/coverage/tmp && chmod 777 backend/coverage backend/coverage/tmp
 	$(COMPOSE_COVERAGE) up -d --build db backend
 	@echo "Attente de l'API..."
 	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
 	cd backend && API_URL=$(API_URL) npm test
-	$(NODE_IN_APP) node --test "test/unit/**/*.test.js"
+	$(NODE_IN_APP) env NODE_V8_COVERAGE=/app/coverage/tmp node --test "test/unit/**/*.test.js"
 	@# Arrêt propre (SIGTERM) : Node écrit la couverture à la sortie du processus.
 	$(COMPOSE_COVERAGE) stop backend
 	$(NODE_IN_APP) node node_modules/c8/bin/c8.js report
