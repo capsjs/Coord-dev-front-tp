@@ -127,6 +127,7 @@ Chaque lancement crée des comptes de test jetables en base. `make reset` les ef
 
 ```
 backend/
+├── openapi.yaml            # contrat d'API du MVP (source de vérité)
 ├── src/
 │   ├── index.js            # démarrage : attente MySQL, migration, seed, serveur
 │   ├── app.js              # application Express (routes, Swagger, erreurs)
@@ -137,7 +138,7 @@ backend/
 │   ├── users.js            # accès aux données utilisateurs
 │   ├── validation.js       # validation des entrées
 │   ├── errors.js           # erreurs HTTP + middleware d'erreur
-│   ├── openapi.js          # spécification Swagger / OpenAPI
+│   ├── openapi.js          # charge openapi.yaml pour Swagger
 │   ├── middleware/auth.js  # JWT, requireAuth, requireRole
 │   └── routes/
 │       ├── auth.js         # /api/auth/*
