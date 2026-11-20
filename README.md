@@ -136,14 +136,16 @@ backend/
 │   ├── schema.sql          # schéma de la base
 │   ├── seed.js             # compte admin + comptes de démo
 │   ├── users.js            # accès aux données utilisateurs
+│   ├── events.js           # accès aux données événements
 │   ├── validation.js       # validation des entrées
 │   ├── errors.js           # erreurs HTTP + middleware d'erreur
 │   ├── openapi.js          # charge openapi.yaml pour Swagger
 │   ├── middleware/auth.js  # JWT, requireAuth, requireRole
 │   └── routes/
 │       ├── auth.js         # /api/auth/*
-│       └── admin.js        # /api/admin/*
-├── test/auth.test.js
+│       ├── admin.js        # /api/admin/*
+│       └── events.js       # /api/events/*
+├── test/                   # tests d'intégration (auth, événements) + helpers.js
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
 docker-compose.yml
