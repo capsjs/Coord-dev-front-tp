@@ -17,8 +17,10 @@ async function loadUser(req) {
   let payload;
   try {
     payload = jwt.verify(token, config.jwtSecret);
-  } catch {
-    throw unauthorized('Jeton invalide ou expiré');
+  } catch (err) {
+    // Message distinct pour une session expirée : le front peut rediriger vers la connexion.
+    if (err.name === 'TokenExpiredError') throw unauthorized('Session expirée : reconnectez-vous');
+    throw unauthorized('Jeton invalide');
   }
   // On relit l'utilisateur en base : un rôle modifié ou un compte supprimé est pris en compte immédiatement.
   const [user] = await query('SELECT id, email, name, role FROM users WHERE id = ?', [payload.sub]);
