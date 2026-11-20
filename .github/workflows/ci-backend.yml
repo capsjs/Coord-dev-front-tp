@@ -1,0 +1,70 @@
+name: CI Back
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - 'Makefile'
+      - '.github/workflows/ci-backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - 'Makefile'
+      - '.github/workflows/ci-backend.yml'
+
+concurrency:
+  group: ci-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Build et tests d'intégration
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+
+      # Construit l'image Docker de l'API, démarre MySQL + l'API et attend /api/health.
+      - name: Build et démarrage de la stack
+        working-directory: .
+        run: make up
+
+      - name: Tests d'intégration
+        working-directory: .
+        run: make test
+
+      - name: Logs en cas d'échec
+        if: failure()
+        working-directory: .
+        run: docker compose logs
+
+      - name: Arrêt de la stack
+        if: always()
+        working-directory: .
+        run: docker compose down -v

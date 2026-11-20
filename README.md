@@ -40,6 +40,7 @@ Tapez `make` seul pour afficher la liste.
 | `make health`  | Vérifie que l'API répond                                       |
 | `make docs`    | Ouvre le Swagger dans le navigateur                            |
 | `make test`    | Lance les tests d'intégration (l'API doit tourner)             |
+| `make lint`    | Vérifie le code du back avec ESLint                            |
 | `make db`      | Ouvre la console MySQL                                         |
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
 | `make reset`   | **Vide la base** et redémarre (comptes de démo recréés)        |
