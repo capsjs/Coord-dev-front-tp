@@ -45,7 +45,20 @@ if [ -n "$BACK_FILES" ]; then
   fi
 fi
 
-# 3. Front : oxlint sur les fichiers TS/JS modifiés
+# 3. Contrat d'API : Spectral
+if echo "$STAGED" | grep -qE '^backend/(openapi\.yaml|\.spectral\.yaml)$'; then
+  if [ -d backend/node_modules ]; then
+    if (cd backend && npm run --silent lint:api); then
+      ok "contrat d'API"
+    else
+      fail "contrat d'API (corrigez les erreurs ci-dessus)"
+    fi
+  else
+    skip "contrat d'API" "lancez make install"
+  fi
+fi
+
+# 4. Front : oxlint sur les fichiers TS/JS modifiés
 FRONT_FILES=$(echo "$STAGED" | grep -E '^frontend/.*\.(ts|tsx|js|jsx)$' | sed 's#^frontend/##')
 if [ -n "$FRONT_FILES" ]; then
   if [ -d frontend/node_modules ]; then

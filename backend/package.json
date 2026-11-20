@@ -6,7 +6,8 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "node --test \"test/**/*.test.js\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:api": "spectral lint openapi.yaml --fail-severity=warn"
   },
   "license": "ISC",
   "type": "module",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@stoplight/spectral-cli": "^6.17.1",
     "eslint": "^9.39.5",
     "globals": "^17.14.0"
   }

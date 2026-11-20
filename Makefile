@@ -53,9 +53,9 @@ test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 	@test -d backend/node_modules || (cd backend && npm install)
 	cd backend && API_URL=$(API_URL) npm test
 
-lint: ## Vérifie le code du back avec ESLint
+lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)
-	cd backend && npm run lint
+	cd backend && npm run lint && npm run lint:api
 
 shell: ## Ouvre un shell dans le conteneur de l'API
 	$(COMPOSE) exec backend sh

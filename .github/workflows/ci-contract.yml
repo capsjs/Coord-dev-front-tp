@@ -1,0 +1,75 @@
+name: CI Contrat d'API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/openapi.yaml'
+      - 'backend/.spectral.yaml'
+      - '.github/workflows/ci-contract.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - 'backend/openapi.yaml'
+      - 'backend/.spectral.yaml'
+      - '.github/workflows/ci-contract.yml'
+
+concurrency:
+  group: ci-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint du contrat (Spectral)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      # Règles OpenAPI recommandées + règles de l'équipe (backend/.spectral.yaml).
+      # --fail-severity=warn : un simple avertissement fait échouer le job.
+      - run: npm run lint:api
+
+  breaking:
+    name: Changements cassants (oasdiff)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      BASE_REF: ${{ github.base_ref }}
+      # Rupture assumée : ajouter le label « rupture-de-contrat » à la PR (voir README, « Contrat d'API »).
+      RUPTURE_ACCEPTEE: ${{ contains(github.event.pull_request.labels.*.name, 'rupture-de-contrat') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Récupérer le contrat de la branche cible
+        id: base
+        run: |
+          if git cat-file -e "origin/$BASE_REF:backend/openapi.yaml" 2>/dev/null; then
+            git show "origin/$BASE_REF:backend/openapi.yaml" > base-openapi.yaml
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Pas de contrat sur $BASE_REF : rien à comparer."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comparer avec la branche cible
+        if: steps.base.outputs.exists == 'true'
+        run: |
+          FAIL_ON="--fail-on ERR"
+          if [ "$RUPTURE_ACCEPTEE" = "true" ]; then
+            echo "::warning::Label rupture-de-contrat présent : les changements cassants sont signalés sans bloquer."
+            FAIL_ON=""
+          fi
+          # shellcheck disable=SC2086
+          docker run --rm -v "$GITHUB_WORKSPACE:/specs" tufin/oasdiff:v1.39.0 \
+            breaking /specs/base-openapi.yaml /specs/backend/openapi.yaml \
+            --format githubactions $FAIL_ON
