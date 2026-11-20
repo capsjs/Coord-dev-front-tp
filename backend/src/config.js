@@ -18,6 +18,9 @@ export const config = {
     name: env.ADMIN_NAME ?? 'Administrateur',
   },
   seedDemo: env.SEED_DEMO === 'true',
+  // Vérifie aussi les réponses de l'API contre openapi.yaml (une réponse non conforme devient une erreur 500).
+  // Activé par défaut hors production : en dev et en CI, tout écart au contrat fait échouer les tests.
+  validateResponses: env.VALIDATE_RESPONSES ? env.VALIDATE_RESPONSES === 'true' : env.NODE_ENV !== 'production',
 };
 
 if (env.NODE_ENV === 'production' && config.jwtSecret === 'dev-secret-a-changer') {

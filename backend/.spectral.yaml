@@ -1,0 +1,24 @@
+# Règles de lint du contrat d'API (backend/openapi.yaml), lancées par `npm run lint:api` et en CI.
+# Base : règles recommandées OpenAPI de Spectral (https://docs.stoplight.io/docs/spectral).
+extends: ["spectral:oas"]
+
+rules:
+  # Convention de l'équipe : champs JSON en camelCase (organizerId, createdAt…).
+  coord-properties-camel-case:
+    description: Les champs des schémas doivent être en camelCase.
+    message: "« {{property}} » n'est pas en camelCase"
+    severity: error
+    given: "$..properties[*]~"
+    then:
+      function: casing
+      functionOptions:
+        type: camel
+
+  # Toute route protégée doit documenter le 401.
+  coord-secured-has-401:
+    description: Une opération protégée par un jeton doit documenter la réponse 401.
+    severity: error
+    given: "$.paths[*][?(@.security)]"
+    then:
+      field: responses.401
+      function: truthy

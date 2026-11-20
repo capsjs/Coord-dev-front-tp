@@ -40,11 +40,12 @@ Tapez `make` seul pour afficher la liste.
 | `make health`  | Vérifie que l'API répond                                       |
 | `make docs`    | Ouvre le Swagger dans le navigateur                            |
 | `make test`    | Lance les tests d'intégration (l'API doit tourner)             |
-| `make lint`    | Vérifie le code du back avec ESLint                            |
+| `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
 | `make db`      | Ouvre la console MySQL                                         |
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
 | `make reset`   | **Vide la base** et redémarre (comptes de démo recréés)        |
 | `make install` | Installe les dépendances npm du back en local                  |
+| `make hooks`   | Active le hook pre-commit (compose + lint vérifiés à chaque commit) |
 
 | Service          | URL                                |
 | ---------------- | ---------------------------------- |
@@ -102,6 +103,31 @@ Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`).
 | `DELETE` | `/api/admin/users/:id`   | admin     | Supprimer un compte                           |
 
 Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont renvoyées au format `{ "error": "message" }`.
+
+## Contrat d'API
+
+[`backend/openapi.yaml`](backend/openapi.yaml) est la **source de vérité** : on modifie d'abord le contrat, on le fait valider par le Front et le Back, puis on code.
+
+**Vérifications automatiques** (workflow *CI Contrat d'API*, à chaque PR qui touche le contrat) :
+
+| Vérification | Outil | En local |
+| ------------ | ----- | -------- |
+| Contrat valide, règles OpenAPI recommandées et règles de l'équipe ([`backend/.spectral.yaml`](backend/.spectral.yaml) : champs en camelCase, 401 documenté sur les routes protégées) | Spectral | `make lint` |
+| Aucun changement cassant par rapport à la branche cible | oasdiff | — |
+
+**Conformité de l'API au contrat** (à l'exécution, via `express-openapi-validator`) :
+
+- **Requêtes** : toute requête non conforme à `openapi.yaml` est refusée en `400` avec un message clair (ex. `Champ « date » invalide : doit respecter le format date-time`). Aucune conversion implicite : `"10"` n'est pas accepté pour un nombre.
+- **Réponses** : avec `VALIDATE_RESPONSES=true` (par défaut en dev, dans Docker Compose et en CI), une réponse non conforme au contrat devient une erreur `500`, loguée avec le préfixe `[contrat]`. Les tests d'intégration échouent donc dès que le code s'écarte du contrat. À désactiver en production.
+- Tests dédiés : [`backend/test/contract.test.js`](backend/test/contract.test.js).
+
+**Changement cassant** : tout ce qui casse un client existant (supprimer ou renommer une route ou un champ de réponse, rendre obligatoire un champ de requête, restreindre un type…). Ajouter une route ou un champ optionnel n'est pas cassant.
+
+### Versioning et dépréciation
+
+- `info.version` suit [SemVer](https://semver.org/lang/fr/) : *patch* pour une correction de doc, *mineure* pour un ajout compatible, *majeure* pour un changement cassant.
+- Avant de supprimer une route ou un champ, on le marque `deprecated: true` dans le contrat **au moins un sprint avant**, et on prévient le Front.
+- Un changement cassant volontaire passe par une PR portant le label **`rupture-de-contrat`**, validée par le Front et le Back, avec la version majeure incrémentée. Le label fait passer oasdiff en simple avertissement.
 
 ## Développement sans Docker pour l'API
 

@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
   title: Coord Events — API
-  version: 1.0.0
+  contact:
+    name: Équipe Coord Events
+    url: https://github.com/capsjs/Coord-dev-front-tp
+  version: 1.0.1
   description: |
     Contrat d'API du MVP de Coord Events : comptes, événements et inscriptions.
 
@@ -35,6 +38,7 @@ paths:
     get:
       tags: [Santé]
       summary: État de l'API
+      description: 'Public. Permet de vérifier que l''API répond (utilisé par make up et la CI).'
       operationId: getHealth
       responses:
         '200':
@@ -51,6 +55,7 @@ paths:
     post:
       tags: [Auth]
       summary: Créer un compte
+      description: 'Public. Crée un compte `participant` (par défaut) ou `organizer` et renvoie directement un jeton de connexion.'
       operationId: register
       requestBody:
         required: true
@@ -75,6 +80,7 @@ paths:
     post:
       tags: [Auth]
       summary: Se connecter
+      description: 'Public. Renvoie un jeton JWT à envoyer ensuite dans l''en-tête `Authorization`.'
       operationId: login
       requestBody:
         required: true
@@ -99,6 +105,7 @@ paths:
     get:
       tags: [Auth]
       summary: Voir son profil
+      description: 'Renvoie le profil de l''utilisateur connecté.'
       operationId: getMe
       security: [{ bearerAuth: [] }]
       responses:
@@ -111,6 +118,7 @@ paths:
     patch:
       tags: [Auth]
       summary: Modifier son nom et/ou son email
+      description: 'Modifie le nom et/ou l''email de l''utilisateur connecté. Au moins un des deux champs est requis.'
       operationId: updateMe
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -162,6 +170,7 @@ paths:
     put:
       tags: [Auth]
       summary: Changer son mot de passe
+      description: 'Le mot de passe actuel est redemandé avant de le remplacer.'
       operationId: changePassword
       security: [{ bearerAuth: [] }]
       requestBody:
@@ -203,6 +212,7 @@ paths:
     get:
       tags: [Admin]
       summary: Lister les comptes
+      description: 'Réservé aux admins. Filtre optionnel par rôle, du plus récent au plus ancien.'
       operationId: listUsers
       security: [{ bearerAuth: [] }]
       parameters:
@@ -228,6 +238,7 @@ paths:
     get:
       tags: [Admin]
       summary: Voir un compte
+      description: 'Réservé aux admins.'
       operationId: getUser
       security: [{ bearerAuth: [] }]
       responses:
@@ -263,6 +274,7 @@ paths:
     delete:
       tags: [Admin]
       summary: Supprimer un compte
+      description: 'Réservé aux admins. Un admin ne peut pas supprimer son propre compte (utiliser DELETE /api/auth/me), ni le dernier admin.'
       operationId: deleteUser
       security: [{ bearerAuth: [] }]
       responses:

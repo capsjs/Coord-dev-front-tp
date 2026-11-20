@@ -6,7 +6,8 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "node --test \"test/**/*.test.js\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "lint:api": "spectral lint openapi.yaml --fail-severity=warn"
   },
   "license": "ISC",
   "type": "module",
@@ -14,6 +15,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "express": "^5.3.0",
+    "express-openapi-validator": "^5.6.2",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.6",
     "swagger-ui-express": "^5.0.1",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@stoplight/spectral-cli": "^6.17.1",
     "eslint": "^9.39.5",
     "globals": "^17.14.0"
   }

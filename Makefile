@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -45,13 +45,17 @@ reset: ## Supprime la base et repart de zéro (comptes de démo recréés)
 install: ## Installe les dépendances npm du back (pour les tests / l'éditeur)
 	cd backend && npm install
 
+hooks: ## Active le hook pre-commit de l'équipe (à lancer une fois par clone)
+	git config core.hooksPath .githooks
+	@echo "Hook pre-commit activé : docker-compose.yml et lint vérifiés à chaque commit."
+
 test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 	@test -d backend/node_modules || (cd backend && npm install)
 	cd backend && API_URL=$(API_URL) npm test
 
-lint: ## Vérifie le code du back avec ESLint
+lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)
-	cd backend && npm run lint
+	cd backend && npm run lint && npm run lint:api
 
 shell: ## Ouvre un shell dans le conteneur de l'API
 	$(COMPOSE) exec backend sh
