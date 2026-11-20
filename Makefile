@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -52,6 +52,28 @@ hooks: ## Active le hook pre-commit de l'équipe (à lancer une fois par clone)
 test: ## Lance les tests d'intégration (l'API doit tourner : make up)
 	@test -d backend/node_modules || (cd backend && npm install)
 	cd backend && API_URL=$(API_URL) npm test
+
+# Les données de couverture sont produites dans le conteneur (chemins /app/src/...) : les tests unitaires
+# et le rapport tournent donc dans un conteneur Node qui monte backend/ sur /app, pour que les chemins correspondent.
+NODE_IN_APP := docker run --rm -v "$(CURDIR)/backend:/app" -w /app -e NODE_V8_COVERAGE=/app/coverage/tmp node:22-alpine
+COMPOSE_COVERAGE := $(COMPOSE) -f docker-compose.yml -f docker-compose.coverage.yml
+
+coverage: ## Mesure la couverture du back (tests d'intégration + unitaires) → backend/coverage/report/index.html
+	@test -d backend/node_modules || (cd backend && npm install)
+	@# Repart d'une mesure vierge (suppression limitée à backend/coverage).
+	$(NODE_IN_APP) node -e "require('fs').rmSync('coverage', { recursive: true, force: true })"
+	mkdir -p backend/coverage/tmp && chmod -R 777 backend/coverage
+	$(COMPOSE_COVERAGE) up -d --build db backend
+	@echo "Attente de l'API..."
+	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
+	cd backend && API_URL=$(API_URL) npm test
+	$(NODE_IN_APP) node --test "test/unit/**/*.test.js"
+	@# Arrêt propre (SIGTERM) : Node écrit la couverture à la sortie du processus.
+	$(COMPOSE_COVERAGE) stop backend
+	$(NODE_IN_APP) node node_modules/c8/bin/c8.js report
+	@echo "Rapport HTML : backend/coverage/report/index.html"
+	@# Relance l'API normalement (sans mesure de couverture).
+	$(COMPOSE) up -d backend >/dev/null
 
 lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)

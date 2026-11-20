@@ -28,11 +28,6 @@ async function loadUser(req) {
   return user;
 }
 
-export async function optionalAuth(req, _res, next) {
-  req.user = await loadUser(req);
-  next();
-}
-
 export async function requireAuth(req, _res, next) {
   req.user = await loadUser(req);
   if (!req.user) throw unauthorized();

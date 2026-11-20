@@ -58,14 +58,33 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
 
-      # Construit l'image Docker de l'API, démarre MySQL + l'API et attend /api/health.
-      - name: Build et démarrage de la stack
+      # Construit l'image Docker de l'API, démarre MySQL + l'API (avec mesure de couverture),
+      # lance les tests d'intégration puis unitaires, et produit le rapport.
+      # Échoue si un test échoue ou si la couverture passe sous les seuils de backend/.c8rc.json.
+      - name: Build, tests et couverture
         working-directory: .
-        run: make up
+        run: make coverage
 
-      - name: Tests d'intégration
+      - name: Résumé de la couverture
+        if: always()
         working-directory: .
-        run: make test
+        run: |
+          if [ -f backend/coverage/report/coverage-summary.json ]; then
+            node -e '
+              const t = require("./backend/coverage/report/coverage-summary.json").total;
+              const row = (k, l) => `| ${l} | ${t[k].pct} % | ${t[k].covered} / ${t[k].total} |`;
+              console.log(["## Couverture du back", "", "| | % | Couvert |", "|---|---|---|",
+                row("lines", "Lignes"), row("branches", "Branches"), row("functions", "Fonctions"), row("statements", "Instructions")].join("\n"));
+            ' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Rapport de couverture (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture-back
+          path: backend/coverage/report/
+          if-no-files-found: ignore
 
       - name: Logs en cas d'échec
         if: failure()
