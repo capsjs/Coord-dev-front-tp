@@ -101,6 +101,9 @@ Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`).
 | `GET`    | `/api/admin/users/:id`   | admin     | Voir un compte                                |
 | `PATCH`  | `/api/admin/users/:id`   | admin     | Changer le rôle d'un compte                   |
 | `DELETE` | `/api/admin/users/:id`   | admin     | Supprimer un compte                           |
+| `GET`    | `/api/events`            | public    | Événements à venir, du plus proche au plus lointain |
+| `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur compris)  |
+| `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
 
 Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont renvoyées au format `{ "error": "message" }`.
 
