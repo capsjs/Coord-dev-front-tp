@@ -138,7 +138,7 @@ describe('requireFutureDate', () => {
     rejects400(() => requireFutureDate('pas-une-date'), /date ISO 8601 valide/);
   });
 
-  it('refuse une date passée ou égale à maintenant', () => {
+  it('refuse une date passée ou égale à maintenant [F01.3]', () => {
     rejects400(() => requireFutureDate(inMs(-60_000)), /dans le futur/);
     rejects400(() => requireFutureDate('2000-01-01T00:00:00.000Z'), /dans le futur/);
   });

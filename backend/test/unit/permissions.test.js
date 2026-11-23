@@ -19,7 +19,7 @@ describe('canManageEvent (F08)', () => {
     assert.equal(canManageEvent(admin, event), true);
   });
 
-  it('refuse un autre organisateur', () => {
+  it('refuse un autre organisateur [F08b.2]', () => {
     assert.equal(canManageEvent(otherOrganizer, event), false);
   });
 
@@ -43,7 +43,7 @@ describe('assertCanManageEvent', () => {
     assert.doesNotThrow(() => assertCanManageEvent(organizer, event));
   });
 
-  it('lève une erreur 403 sinon', () => {
+  it('lève une erreur 403 sinon [F08b.2]', () => {
     assert.throws(() => assertCanManageEvent(otherOrganizer, event), (err) => {
       assert.equal(err.status, 403);
       assert.match(err.message, /organisateur/);

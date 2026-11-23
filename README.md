@@ -155,6 +155,8 @@ make test
 
 Chaque lancement crée des comptes de test jetables en base. `make reset` les efface.
 
+**Traçabilité** : chaque critère d'acceptation des user stories est une exigence de [`docs/exigences.json`](docs/exigences.json) (ex. `F01.3` : « une date passée est refusée »). Un test la cite dans son titre (`it('… [F01.3]')`), et `cd backend && npm run matrix` génère la [matrice exigence → test → version](docs/matrice-tracabilite.md). En CI, `npm run matrix:check` échoue si une exigence back livrée n'a aucun test, si un test cite une exigence inconnue ou si la matrice n'est pas à jour.
+
 Tests unitaires (règles métier pures, sans API ni base) : `cd backend && npm run test:unit`. Ils tournent aussi dans le job *Lint* de la CI.
 
 **Couverture de code** : `make coverage` démarre l'API en mesurant le code exécuté, lance les tests d'intégration puis unitaires, et produit un rapport (`backend/coverage/report/index.html`). Seuils minimaux dans [`backend/.c8rc.json`](backend/.c8rc.json) : 95 % des lignes, instructions et fonctions, 85 % des branches. En CI, la commande fait échouer le job sous ces seuils, affiche un résumé sur la page du workflow et publie le rapport HTML en artefact (`couverture-back`).

@@ -4,12 +4,12 @@ import assert from 'node:assert/strict';
 
 import jwt from 'jsonwebtoken';
 
-import { API, ADMIN, api, unique, register } from './helpers.js';
+import { API, ADMIN, api, unique, register, withDb } from './helpers.js';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-a-changer';
 
 describe('Inscription', () => {
-  it('crée un participant par défaut et renvoie un jeton', async () => {
+  it('crée un participant par défaut et renvoie un jeton [F08a.1] [F08a.4]', async () => {
     const email = unique();
     const res = await api('POST', '/api/auth/register', { body: { name: 'Alice', email, password: 'motdepasse123' } });
     assert.equal(res.status, 201);
@@ -17,6 +17,14 @@ describe('Inscription', () => {
     assert.equal(res.body.user.role, 'participant');
     assert.equal(res.body.user.email, email);
     assert.equal(res.body.user.password_hash, undefined, 'le hash ne doit jamais sortir');
+  });
+
+  it('stocke le mot de passe haché (bcrypt), jamais en clair [F08a.3]', async () => {
+    const { user, password } = await register();
+    const [row] = await withDb(async (db) => (await db.query('SELECT password_hash FROM users WHERE id = ?', [user.id]))[0]);
+    assert.notEqual(row.password_hash, password);
+    assert.ok(!row.password_hash.includes(password), 'le mot de passe ne doit pas apparaître dans le hash');
+    assert.match(row.password_hash, /^\$2[aby]\$\d{2}\$/, 'format bcrypt attendu');
   });
 
   it('accepte le rôle organizer', async () => {
@@ -31,7 +39,7 @@ describe('Inscription', () => {
     assert.equal(res.status, 400);
   });
 
-  it('refuse un email déjà utilisé, sans tenir compte de la casse', async () => {
+  it('refuse un email déjà utilisé, sans tenir compte de la casse [F08a.2]', async () => {
     const { email } = await register();
     const res = await api('POST', '/api/auth/register', {
       body: { name: 'Doublon', email: email.toUpperCase(), password: 'motdepasse123' },
@@ -39,7 +47,7 @@ describe('Inscription', () => {
     assert.equal(res.status, 409);
   });
 
-  it('valide les champs', async () => {
+  it('valide les champs [F08a.1]', async () => {
     const cases = [
       { name: 'A', email: unique(), password: 'motdepasse123' },
       { name: 'Alice', email: 'pas-un-email', password: 'motdepasse123' },
@@ -55,13 +63,13 @@ describe('Inscription', () => {
 });
 
 describe('Connexion', () => {
-  it("connecte l'admin créé au démarrage", async () => {
+  it("connecte l'admin créé au démarrage [F08a.4]", async () => {
     const res = await api('POST', '/api/auth/login', { body: ADMIN });
     assert.equal(res.status, 200);
     assert.equal(res.body.user.role, 'admin');
   });
 
-  it('refuse un mauvais mot de passe ou un email inconnu avec le même message', async () => {
+  it('refuse un mauvais mot de passe ou un email inconnu avec le même message [F08a.5]', async () => {
     const wrongPwd = await api('POST', '/api/auth/login', { body: { email: ADMIN.email, password: 'mauvais' } });
     const unknown = await api('POST', '/api/auth/login', { body: { email: unique(), password: 'mauvais' } });
     assert.equal(wrongPwd.status, 401);
@@ -69,7 +77,7 @@ describe('Connexion', () => {
     assert.equal(wrongPwd.body.error, unknown.body.error);
   });
 
-  it('distingue une session expirée (pour que le front redirige vers la connexion)', async () => {
+  it('distingue une session expirée (pour que le front redirige vers la connexion) [F08b.3]', async () => {
     const { user } = await register();
     const expired = jwt.sign({ sub: user.id, role: user.role, exp: Math.floor(Date.now() / 1000) - 60 }, JWT_SECRET);
     const res = await api('GET', '/api/auth/me', { token: expired });
@@ -77,7 +85,7 @@ describe('Connexion', () => {
     assert.equal(res.body.error, 'Session expirée : reconnectez-vous');
   });
 
-  it('refuse un jeton falsifié', async () => {
+  it('refuse un jeton falsifié [F08b.4]', async () => {
     const { user } = await register();
     const forged = jwt.sign({ sub: user.id, role: 'admin' }, 'pas-le-bon-secret');
     const res = await api('GET', '/api/auth/me', { token: forged });
@@ -85,7 +93,7 @@ describe('Connexion', () => {
     assert.equal(res.body.error, 'Jeton invalide');
   });
 
-  it('exige un jeton valide sur /me', async () => {
+  it('exige un jeton valide sur /me [F08b.1]', async () => {
     assert.equal((await api('GET', '/api/auth/me')).status, 401);
     assert.equal((await api('GET', '/api/auth/me', { token: 'faux.jeton.jwt' })).status, 401);
   });
@@ -132,7 +140,7 @@ describe('Administration des comptes', () => {
     adminToken = (await api('POST', '/api/auth/login', { body: ADMIN })).body.token;
   });
 
-  it('est interdite aux non-admins', async () => {
+  it('est interdite aux non-admins [F08b.4]', async () => {
     const { token } = await register('organizer');
     assert.equal((await api('GET', '/api/admin/users', { token })).status, 403);
     assert.equal((await api('GET', '/api/admin/users')).status, 401);
@@ -185,7 +193,7 @@ describe('Divers', () => {
     assert.equal(ui.status, 200);
   });
 
-  it('renvoie du JSON pour une route inconnue et un JSON invalide', async () => {
+  it('renvoie du JSON pour une route inconnue et un JSON invalide [CT.3]', async () => {
     assert.equal((await api('GET', '/api/nexiste-pas')).status, 404);
     const res = await fetch(`${API}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{oups' });
     assert.equal(res.status, 400);

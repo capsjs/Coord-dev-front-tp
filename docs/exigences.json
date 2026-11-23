@@ -1,0 +1,67 @@
+{
+  "_comment": "Exigences du MVP = critères d'acceptation des user stories Jira. Un test les cite par leur id entre crochets dans son titre, ex. it('… [F01.3]'). Matrice générée : cd backend && npm run matrix. couche : back | front | back+front. statut : livre | sprint3. version : version de l'API (openapi.yaml) qui a livré l'exigence côté back.",
+  "stories": [
+    { "id": "F08a", "jira": "SCRUM-14", "titre": "Créer un compte et se connecter" },
+    { "id": "F01", "jira": "SCRUM-15", "titre": "Créer un événement" },
+    { "id": "F02", "jira": "SCRUM-16", "titre": "Modifier un événement" },
+    { "id": "F03", "jira": "SCRUM-17", "titre": "Supprimer un événement" },
+    { "id": "F04", "jira": "SCRUM-18", "titre": "Consulter la liste des événements" },
+    { "id": "F05", "jira": "SCRUM-19", "titre": "Consulter les détails d'un événement" },
+    { "id": "F08b", "jira": "SCRUM-20", "titre": "Protéger les accès selon le rôle" },
+    { "id": "F06", "jira": "SCRUM-21", "titre": "S'inscrire à un événement" },
+    { "id": "F07", "jira": "SCRUM-22", "titre": "Se désinscrire d'un événement" },
+    { "id": "CT", "jira": "SCRUM-65 / SCRUM-75", "titre": "Respect du contrat d'API" }
+  ],
+  "exigences": [
+    { "id": "F08a.1", "critere": "L'inscription demande un e-mail et un mot de passe (validés).", "couche": "back+front", "statut": "livre", "version": "1.0.0" },
+    { "id": "F08a.2", "critere": "Un e-mail déjà utilisé est refusé avec un message clair.", "couche": "back", "statut": "livre", "version": "1.0.0" },
+    { "id": "F08a.3", "critere": "Le mot de passe est stocké haché, jamais en clair.", "couche": "back", "statut": "livre", "version": "1.0.0" },
+    { "id": "F08a.4", "critere": "Avec des identifiants valides, l'utilisateur est connecté (puis redirigé vers la liste).", "couche": "back+front", "statut": "livre", "version": "1.0.0" },
+    { "id": "F08a.5", "critere": "Avec des identifiants invalides, un message d'erreur générique est renvoyé.", "couche": "back", "statut": "livre", "version": "1.0.0" },
+    { "id": "F08a.6", "critere": "L'utilisateur peut se déconnecter.", "couche": "front", "statut": "livre" },
+
+    { "id": "F01.1", "critere": "Un événement contient titre, description, date et heure, lieu.", "couche": "back+front", "statut": "livre", "version": "1.0.0" },
+    { "id": "F01.2", "critere": "Titre, date et lieu sont obligatoires ; un message indique le champ manquant.", "couche": "back+front", "statut": "livre", "version": "1.0.0" },
+    { "id": "F01.3", "critere": "Une date passée est refusée.", "couche": "back", "statut": "livre", "version": "1.0.0" },
+    { "id": "F01.4", "critere": "L'événement créé est associé à l'organisateur connecté.", "couche": "back", "statut": "livre", "version": "1.0.0" },
+    { "id": "F01.5", "critere": "Après création, une confirmation s'affiche et l'événement apparaît dans la liste.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+
+    { "id": "F02.1", "critere": "Le formulaire de modification est pré-rempli avec les informations actuelles.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F02.2", "critere": "Les mêmes règles de validation qu'à la création s'appliquent.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+    { "id": "F02.3", "critere": "Seul l'organisateur de l'événement (ou un admin) peut enregistrer une modification.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F02.4", "critere": "Les modifications sont visibles immédiatement dans la liste et sur la fiche.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+
+    { "id": "F03.1", "critere": "Une confirmation est demandée avant la suppression.", "couche": "front", "statut": "livre" },
+    { "id": "F03.2", "critere": "Seul l'organisateur de l'événement (ou un admin) peut le supprimer.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+    { "id": "F03.3", "critere": "L'événement supprimé n'apparaît plus dans la liste ; sa fiche renvoie « introuvable ».", "couche": "back", "statut": "livre", "version": "1.1.0" },
+    { "id": "F03.4", "critere": "Les inscriptions liées à l'événement sont supprimées aussi.", "couche": "back", "statut": "sprint3" },
+
+    { "id": "F04.1", "critere": "La liste affiche les événements à venir, triés par date croissante.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+    { "id": "F04.2", "critere": "Chaque événement montre au minimum son titre, sa date et son lieu.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F04.3", "critere": "Si aucun événement n'est prévu, un message l'indique.", "couche": "front", "statut": "livre" },
+    { "id": "F04.4", "critere": "Un clic sur un événement ouvre sa fiche détaillée.", "couche": "front", "statut": "livre" },
+
+    { "id": "F05.1", "critere": "La fiche affiche titre, description, date et heure, lieu et organisateur.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F05.2", "critere": "Un utilisateur connecté voit « S'inscrire » ou « Se désinscrire » selon qu'il est inscrit.", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F05.3", "critere": "Un événement inexistant affiche une page « introuvable ».", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+
+    { "id": "F08b.1", "critere": "Une action réservée sans être connecté est refusée (401) et le front redirige vers la connexion.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F08b.2", "critere": "Seul l'organisateur d'un événement peut le modifier ou le supprimer ; sinon 403.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+    { "id": "F08b.3", "critere": "Quand la session expire, l'utilisateur doit se reconnecter.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
+    { "id": "F08b.4", "critere": "Les routes de l'API sont protégées de la même façon que l'interface.", "couche": "back", "statut": "livre", "version": "1.1.0" },
+
+    { "id": "F06.1", "critere": "Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit.", "couche": "front", "statut": "sprint3" },
+    { "id": "F06.2", "critere": "Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ».", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F06.3", "critere": "Je ne peux pas m'inscrire deux fois au même événement.", "couche": "back", "statut": "sprint3" },
+    { "id": "F06.4", "critere": "Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion.", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F06.5", "critere": "On ne peut pas s'inscrire à un événement passé.", "couche": "back", "statut": "sprint3" },
+
+    { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "sprint3" },
+    { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F07.3", "critere": "Ma place est libérée pour les autres participants.", "couche": "back", "statut": "sprint3" },
+
+    { "id": "CT.1", "critere": "Toute requête non conforme à openapi.yaml est refusée (400) avec un message clair.", "couche": "back", "statut": "livre", "version": "1.0.1" },
+    { "id": "CT.2", "critere": "Les réponses de l'API sont conformes à openapi.yaml (sinon 500 en dev et en CI).", "couche": "back", "statut": "livre", "version": "1.0.1" },
+    { "id": "CT.3", "critere": "Toutes les erreurs ont le format { \"error\": \"…\" } du contrat.", "couche": "back", "statut": "livre", "version": "1.0.1" }
+  ]
+}

@@ -8,12 +8,16 @@ on:
       - 'docker-compose.yml'
       - 'Makefile'
       - '.github/workflows/ci-backend.yml'
+      - 'docs/exigences.json'
+      - 'docs/matrice-tracabilite.md'
   pull_request:
     paths:
       - 'backend/**'
       - 'docker-compose.yml'
       - 'Makefile'
       - '.github/workflows/ci-backend.yml'
+      - 'docs/exigences.json'
+      - 'docs/matrice-tracabilite.md'
 
 concurrency:
   group: ci-backend-${{ github.ref }}
@@ -44,6 +48,8 @@ jobs:
       - run: npm run lint
       # Tests unitaires : pas besoin de Docker ni de base, retour en quelques secondes.
       - run: npm run test:unit
+      # Matrice exigence → test → version : complète et à jour (docs/matrice-tracabilite.md).
+      - run: npm run matrix:check
 
   test:
     name: Build et tests d'intégration
