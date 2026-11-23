@@ -33,7 +33,7 @@ describe('Création d\'un événement (POST /api/events)', () => {
     organizer = await register('organizer');
   });
 
-  it("crée l'événement et en fait l'organisateur l'utilisateur connecté", async () => {
+  it("crée l'événement et en fait l'organisateur l'utilisateur connecté [F01.1] [F01.4]", async () => {
     const body = validEvent();
     const res = await api('POST', '/api/events', { token: organizer.token, body });
     assert.equal(res.status, 201, JSON.stringify(res.body));
@@ -66,7 +66,7 @@ describe('Création d\'un événement (POST /api/events)', () => {
     assert.equal(res.body.organizerId, admin.user.id);
   });
 
-  it('exige un jeton (401) et le rôle organizer ou admin (403)', async () => {
+  it('exige un jeton (401) et le rôle organizer ou admin (403) [F08b.1] [F08b.4]', async () => {
     assert.equal((await api('POST', '/api/events', { body: validEvent() })).status, 401);
     const participant = await register('participant');
     const res = await api('POST', '/api/events', { token: participant.token, body: validEvent() });
@@ -74,7 +74,7 @@ describe('Création d\'un événement (POST /api/events)', () => {
     assert.ok(res.body.error);
   });
 
-  it('valide les champs (400)', async () => {
+  it('valide les champs (400) [F01.2] [F01.3]', async () => {
     const cases = [
       without('title'),
       without('date'),
@@ -111,7 +111,7 @@ describe('Liste des événements à venir (GET /api/events)', () => {
     });
   });
 
-  it('est publique et renvoie les événements à venir triés par date croissante', async () => {
+  it('est publique et renvoie les événements à venir triés par date croissante [F04.1] [F04.2] [F01.5]', async () => {
     const later = await api('POST', '/api/events', { token: organizer.token, body: validEvent({ date: inDays(60) }) });
     const sooner = await api('POST', '/api/events', { token: organizer.token, body: validEvent({ date: inDays(2) }) });
 
@@ -128,7 +128,7 @@ describe('Liste des événements à venir (GET /api/events)', () => {
     assert.ok(dates.every((d) => d > Date.now()), 'aucun événement passé');
   });
 
-  it("n'inclut pas les événements passés", async () => {
+  it("n'inclut pas les événements passés [F04.1]", async () => {
     const res = await api('GET', '/api/events');
     assert.ok(!res.body.some((e) => e.id === pastId));
   });
@@ -151,7 +151,7 @@ describe("Détail d'un événement (GET /api/events/:id)", () => {
     created = (await api('POST', '/api/events', { token: organizer.token, body: validEvent() })).body;
   });
 
-  it("est public et renvoie toutes les informations, organisateur compris", async () => {
+  it("est public et renvoie toutes les informations, organisateur compris [F05.1] [F02.1]", async () => {
     const res = await api('GET', `/api/events/${created.id}`);
     assert.equal(res.status, 200);
     assert.deepEqual(res.body, created);
@@ -171,7 +171,7 @@ describe("Détail d'un événement (GET /api/events/:id)", () => {
     assert.equal(res.body.id, pastId);
   });
 
-  it("renvoie 404 si l'événement n'existe pas", async () => {
+  it("renvoie 404 si l'événement n'existe pas [F05.3]", async () => {
     const res = await api('GET', '/api/events/999999999');
     assert.equal(res.status, 404);
     assert.equal(res.body.error, 'Événement introuvable');
@@ -192,7 +192,7 @@ describe("Modification d'un événement (PUT /api/events/:id)", () => {
 
   const createOwned = async () => (await api('POST', '/api/events', { token: owner.token, body: validEvent() })).body;
 
-  it("permet à l'organisateur de modifier tous les champs", async () => {
+  it("permet à l'organisateur de modifier tous les champs [F02.4]", async () => {
     const event = await createOwned();
     const changes = validEvent({
       title: 'Meetup modifié',
@@ -230,7 +230,7 @@ describe("Modification d'un événement (PUT /api/events/:id)", () => {
     assert.equal(res.body.organizerId, owner.user.id);
   });
 
-  it('refuse un autre organisateur ou un participant (403), sans rien modifier', async () => {
+  it('refuse un autre organisateur ou un participant (403), sans rien modifier [F02.3] [F08b.2]', async () => {
     const event = await createOwned();
     for (const user of [other, participant]) {
       const res = await api('PUT', `/api/events/${event.id}`, { token: user.token, body: validEvent({ title: 'Piratage' }) });
@@ -240,7 +240,7 @@ describe("Modification d'un événement (PUT /api/events/:id)", () => {
     assert.equal((await api('GET', `/api/events/${event.id}`)).body.title, event.title);
   });
 
-  it('exige un jeton (401)', async () => {
+  it('exige un jeton (401) [F08b.1]', async () => {
     const event = await createOwned();
     assert.equal((await api('PUT', `/api/events/${event.id}`, { body: validEvent() })).status, 401);
   });
@@ -250,7 +250,7 @@ describe("Modification d'un événement (PUT /api/events/:id)", () => {
     assert.equal(res.status, 404);
   });
 
-  it("applique les mêmes règles de validation qu'à la création (400)", async () => {
+  it("applique les mêmes règles de validation qu'à la création (400) [F02.2]", async () => {
     const event = await createOwned();
     for (const body of [without('title'), validEvent({ date: inDays(-1) }), validEvent({ price: -1 }), validEvent({ currency: 'eur' })]) {
       const res = await api('PUT', `/api/events/${event.id}`, { token: owner.token, body });
@@ -271,7 +271,7 @@ describe("Suppression d'un événement (DELETE /api/events/:id)", () => {
 
   const createOwned = async () => (await api('POST', '/api/events', { token: owner.token, body: validEvent() })).body;
 
-  it("permet à l'organisateur de supprimer son événement", async () => {
+  it("permet à l'organisateur de supprimer son événement [F03.3]", async () => {
     const event = await createOwned();
     const res = await api('DELETE', `/api/events/${event.id}`, { token: owner.token });
     assert.equal(res.status, 204);
@@ -286,14 +286,14 @@ describe("Suppression d'un événement (DELETE /api/events/:id)", () => {
     assert.equal((await api('GET', `/api/events/${event.id}`)).status, 404);
   });
 
-  it('refuse un autre organisateur (403) et conserve l\'événement', async () => {
+  it('refuse un autre organisateur (403) et conserve l\'événement [F03.2] [F08b.2]', async () => {
     const event = await createOwned();
     const res = await api('DELETE', `/api/events/${event.id}`, { token: other.token });
     assert.equal(res.status, 403);
     assert.equal((await api('GET', `/api/events/${event.id}`)).status, 200);
   });
 
-  it('exige un jeton (401)', async () => {
+  it('exige un jeton (401) [F08b.1]', async () => {
     const event = await createOwned();
     assert.equal((await api('DELETE', `/api/events/${event.id}`)).status, 401);
   });

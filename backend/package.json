@@ -8,7 +8,9 @@
     "test": "node --test \"test/**/*.test.js\"",
     "lint": "eslint .",
     "lint:api": "spectral lint openapi.yaml --fail-severity=warn",
-    "test:unit": "node --test \"test/unit/**/*.test.js\""
+    "test:unit": "node --test \"test/unit/**/*.test.js\"",
+    "matrix": "node scripts/matrice.js",
+    "matrix:check": "node scripts/matrice.js --check"
   },
   "license": "ISC",
   "type": "module",

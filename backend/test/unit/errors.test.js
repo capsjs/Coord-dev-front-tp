@@ -64,7 +64,7 @@ describe('errorHandler', () => {
     assert.deepEqual(res.body, { error: 'JSON invalide' });
   });
 
-  it('traduit une requête non conforme au contrat (erreur de format)', () => {
+  it('traduit une requête non conforme au contrat (erreur de format) [CT.1] [CT.3]', () => {
     const err = {
       status: 400,
       message: 'request/body/date must match format "date-time"',
@@ -94,7 +94,7 @@ describe('errorHandler', () => {
     assert.deepEqual(res.body, { error: 'method not allowed' });
   });
 
-  it('renvoie 500 si une réponse de l’API ne respecte pas le contrat, et le logue', () => {
+  it('renvoie 500 si une réponse de l’API ne respecte pas le contrat, et le logue [CT.2]', () => {
     const err = { status: 500, message: '.response should have required property', errors: [{ path: '/response/organizer' }] };
     const res = handle(err);
     assert.equal(res.statusCode, 500);
