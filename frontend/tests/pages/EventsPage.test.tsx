@@ -1,20 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EventsPage } from "./EventsPage";
-import { getEvents, deleteEvent } from "../api/events";
-import { useAuth } from "../auth/useAuth";
-import type { Event } from "../types/event";
+import { EventsPage } from "../../src/pages/EventsPage";
+import { getEvents, deleteEvent } from "../../src/api/events";
+import { useAuth } from "../../src/auth/useAuth";
+import type { Event } from "../../src/types/event";
 
-// On simule les appels API sans lancer le backend.
-vi.mock("../api/events", () => ({
+vi.mock("../../src/api/events", () => ({
   getEvents: vi.fn(),
   deleteEvent: vi.fn(),
 }));
 
-// On simule l'utilisateur connecté.
-vi.mock("../auth/useAuth", () => ({
+vi.mock("../../src/auth/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
@@ -142,7 +140,14 @@ describe("Suppression d'un événement", () => {
     vi.clearAllMocks();
 
     mockedUseAuth.mockReturnValue({
-      user: null,
+      user: {
+        id: 2,
+        name: "Jean Dupont",
+        email: "jean@example.com",
+        role: "organizer",
+        createdAt: "2026-11-01T10:00:00.000Z",
+        updatedAt: "2026-11-01T10:00:00.000Z",
+      },
       loading: false,
       login: vi.fn(),
       register: vi.fn(),

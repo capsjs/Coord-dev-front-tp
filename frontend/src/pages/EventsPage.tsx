@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { getEvents, deleteEvent } from "../api/events";
-import type { Event } from "../types/event";
 import { useAuth } from "../auth/useAuth";
+import type { Event } from "../types/event";
 
 export function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const { user } = useAuth();
 
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Seuls les organisateurs et administrateurs peuvent créer.
+  const canCreate = user?.role === "organizer" || user?.role === "admin";
 
   useEffect(() => {
     async function loadEvents() {
@@ -23,7 +26,9 @@ export function EventsPage() {
         setEvents(data);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Une erreur est survenue.",
+          err instanceof Error
+            ? err.message
+            : "Impossible de récupérer les événements.",
         );
       } finally {
         setLoading(false);
@@ -60,12 +65,21 @@ export function EventsPage() {
     }
   }
 
-  // Formater le prix selon la devise
   function formatPrice(price: number, currency: string) {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency,
     }).format(price);
+  }
+
+  function formatDate(date: string) {
+    return new Date(date).toLocaleString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   if (loading) {
@@ -77,79 +91,91 @@ export function EventsPage() {
       <div className="events-header">
         <div>
           <h1>Événements</h1>
+          <p>Retrouve tous les événements disponibles.</p>
         </div>
 
-        {user && ["organizer", "admin"].includes(user.role) && (
+        {canCreate && (
           <Link to="/events/new" className="button">
             Créer un événement
           </Link>
         )}
       </div>
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
-      {events.length === 0 ? (
+      {events.length === 0 && !error ? (
         <p>Aucun événement pour le moment.</p>
       ) : (
         <div className="events-list">
-          {events.map((event) => (
-            <article className="event-card" key={event.id}>
-              <div className="event-card-content">
-                <h2>{event.title}</h2>
+          {events.map((event) => {
+            // Seul le propriétaire ou un admin peut gérer l'événement.
+            const canManage =
+              user?.role === "admin" ||
+              (user?.role === "organizer" &&
+                Number(user.id) === event.organizerId);
 
-                <p>{event.description}</p>
+            return (
+              <article className="event-card" key={event.id}>
+                <div className="event-card-content">
+                  <h2>{event.title}</h2>
 
-                <p>
-                  <strong>Date :</strong>{" "}
-                  {new Date(event.date).toLocaleString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                </p>
+                  <p>{event.description}</p>
 
-                <p>
-                  <strong>Lieu :</strong> {event.location}
-                </p>
+                  <p>
+                    <strong>Date :</strong> {formatDate(event.date)}
+                  </p>
 
-                <p>
-                  <strong>Organisateur :</strong> {event.organizer.name}
-                </p>
+                  <p>
+                    <strong>Lieu :</strong> {event.location}
+                  </p>
 
-                <p>
-                  <strong>Prix :</strong>{" "}
-                  {formatPrice(event.price, event.currency)}
-                </p>
-              </div>
+                  <p>
+                    <strong>Organisateur :</strong> {event.organizer.name}
+                  </p>
 
-              <div className="event-card-actions">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/events/${event.id}`)}
-                >
-                  Voir le détail
-                </button>
+                  <p>
+                    <strong>Prix :</strong>{" "}
+                    {formatPrice(event.price, event.currency)}
+                  </p>
+                </div>
 
-                <Link
-                  to={`/events/${event.id}/edit`}
-                  className="button-secondary"
-                >
-                  Modifier
-                </Link>
+                <div className="event-card-actions">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/events/${event.id}`)}
+                  >
+                    Voir le détail
+                  </button>
 
-                <button
-                  type="button"
-                  className="button-secondary"
-                  disabled={deletingId === event.id}
-                  onClick={() => handleDelete(event.id)}
-                >
-                  {deletingId === event.id ? "Suppression..." : "Supprimer"}
-                </button>
-              </div>
-            </article>
-          ))}
+                  {canManage && (
+                    <>
+                      <Link
+                        to={`/events/${event.id}/edit`}
+                        className="button-secondary"
+                      >
+                        Modifier
+                      </Link>
+
+                      <button
+                        type="button"
+                        className="button-secondary"
+                        disabled={deletingId === event.id}
+                        onClick={() => handleDelete(event.id)}
+                      >
+                        {deletingId === event.id
+                          ? "Suppression..."
+                          : "Supprimer"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

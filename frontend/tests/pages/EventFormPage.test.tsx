@@ -2,12 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 
-import EventFormPage from "./EventFormPage";
-import { createEvent, getEventById, updateEvent } from "../api/events";
-import type { Event } from "../types/event";
+import EventFormPage from "../../src/pages/EventFormPage";
+import { createEvent, getEventById, updateEvent } from "../../src/api/events";
+import type { Event } from "../../src/types/event";
 
-// Simulation des appels API
-vi.mock("../api/events", () => ({
+vi.mock("../../src/api/events", () => ({
   createEvent: vi.fn(),
   getEventById: vi.fn(),
   updateEvent: vi.fn(),

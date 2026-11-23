@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 
-import { AuthProvider } from "./AuthProvider";
-import { useAuth } from "./useAuth";
-import { getMeRequest, loginRequest, registerRequest } from "../api/auth";
-import { getToken, saveToken } from "../api/client";
-import type { User } from "../types/user";
+import { AuthProvider } from "../../src/auth/AuthProvider";
+import { useAuth } from "../../src/auth/useAuth";
 
-// On simule uniquement les requêtes API.
-vi.mock("../api/auth", () => ({
+import {
+  getMeRequest,
+  loginRequest,
+  registerRequest,
+} from "../../src/api/auth";
+
+import { getToken, saveToken } from "../../src/api/client";
+
+import type { User } from "../../src/types/user";
+
+vi.mock("../../src/api/auth", () => ({
   getMeRequest: vi.fn(),
   loginRequest: vi.fn(),
   registerRequest: vi.fn(),

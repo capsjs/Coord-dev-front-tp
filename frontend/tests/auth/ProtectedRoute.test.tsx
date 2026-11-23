@@ -2,13 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 
-import { ProtectedRoute } from "./ProtectedRoute";
-import { useAuth } from "./useAuth";
-import type { AuthContextValue } from "./authContext";
-import type { User } from "../types/user";
+import { ProtectedRoute } from "../../src/auth/ProtectedRoute";
+import { useAuth } from "../../src/auth/useAuth";
+import type { AuthContextValue } from "../../src/auth/authContext";
+import type { User } from "../../src/types/user";
 
-// Simule le hook d'authentification
-vi.mock("./useAuth", () => ({
+vi.mock("../../src/auth/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 

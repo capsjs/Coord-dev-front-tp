@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiFetch, saveToken } from "./client";
+import { ApiError, apiFetch, saveToken } from "../../src/api/client";
 
 describe("apiFetch", () => {
   afterEach(() => {
@@ -8,13 +8,11 @@ describe("apiFetch", () => {
   });
 
   it("récupère les données lorsque l'API répond 200", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ id: 1, title: "Concert" }), {
-          status: 200,
-        }),
-      );
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ id: 1, title: "Concert" }), {
+        status: 200,
+      }),
+    );
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -64,13 +62,11 @@ describe("apiFetch", () => {
   it("conserve le statut HTTP dans ApiError", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(JSON.stringify({ error: "Accès interdit" }), {
-            status: 403,
-          }),
-        ),
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Accès interdit" }), {
+          status: 403,
+        }),
+      ),
     );
 
     await expect(apiFetch("/events")).rejects.toMatchObject({
