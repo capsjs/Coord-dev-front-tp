@@ -23,11 +23,13 @@ export default function App() {
         <Route path="/events" element={<EventsPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
 
-        {/* Pages réservées aux utilisateurs connectés */}
+        {/* Utilisateurs connectés */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
-          {/* Création et modification des événements */}
+        {/* Organisateurs et administrateurs */}
+        <Route element={<ProtectedRoute roles={["organizer", "admin"]} />}>
           <Route path="/events/new" element={<EventFormPage />} />
           <Route path="/events/:id/edit" element={<EventFormPage />} />
         </Route>
