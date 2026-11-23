@@ -79,7 +79,7 @@ export function EventsPage() {
           <h1>Événements</h1>
         </div>
 
-        {user && (
+        {user && ["organizer", "admin"].includes(user.role) && (
           <Link to="/events/new" className="button">
             Créer un événement
           </Link>
