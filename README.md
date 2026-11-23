@@ -146,6 +146,8 @@ DB_PORT=3307 SEED_DEMO=true npm run dev
 
 ## Tests
 
+Stratégie (pyramide, outils, données, seuils, responsabilités) : [plan de test](docs/plan-de-test.md). Ce qui doit être vrai pour qu'une story soit terminée : [Definition of Done](docs/definition-of-done.md).
+
 Tests d'intégration (`node:test`) à lancer contre l'API démarrée :
 
 ```bash
@@ -189,6 +191,7 @@ backend/
 │   └── unit/               # tests unitaires (permissions, validation, erreurs)
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
+docs/                       # plan de test, Definition of Done, exigences et matrice de traçabilité
 docker-compose.yml
 Makefile                    # raccourcis : make up, make test…
 ```
