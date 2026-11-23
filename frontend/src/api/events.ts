@@ -1,70 +1,39 @@
+import { apiFetch } from "./client";
 import type { Event } from "../types/event";
+import type { EventFormData } from "../types/eventFormData";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
+// Récupérer tous les événements
 export async function getEvents(): Promise<Event[]> {
-  const response = await fetch(`${API_URL}/events`);
-
-  if (!response.ok) {
-    throw new Error("Impossible de récupérer les événements");
-  }
-
-  return response.json();
+  return apiFetch<Event[]>("/events");
 }
 
+// Récupérer un événement
 export async function getEventById(id: number): Promise<Event> {
-  const response = await fetch(`${API_URL}/events/${id}`);
-
-  if (!response.ok) {
-    throw new Error("Impossible de récupérer cet événement");
-  }
-
-  return response.json();
+  return apiFetch<Event>(`/events/${id}`);
 }
 
-export async function createEvent(
-  event: Omit<Event, "id">
-): Promise<Event> {
-  const response = await fetch(`${API_URL}/events`, {
+// Créer un événement
+export async function createEvent(event: EventFormData): Promise<Event> {
+  return apiFetch<Event>("/events", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(event),
   });
-
-  if (!response.ok) {
-    throw new Error("Impossible de créer l'événement");
-  }
-
-  return response.json();
 }
 
+// Modifier un événement
 export async function updateEvent(
   id: number,
-  event: Omit<Event, "id">
+  event: EventFormData,
 ): Promise<Event> {
-  const response = await fetch(`${API_URL}/events/${id}`, {
+  return apiFetch<Event>(`/events/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(event),
   });
-
-  if (!response.ok) {
-    throw new Error("Impossible de modifier l'événement");
-  }
-
-  return response.json();
 }
 
+// Supprimer un événement
 export async function deleteEvent(id: number): Promise<void> {
-  const response = await fetch(`${API_URL}/events/${id}`, {
+  return apiFetch<void>(`/events/${id}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    throw new Error("Impossible de supprimer l'événement");
-  }
 }
