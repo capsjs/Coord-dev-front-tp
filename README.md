@@ -135,6 +135,10 @@ Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont re
 - Avant de supprimer une route ou un champ, on le marque `deprecated: true` dans le contrat **au moins un sprint avant**, et on prévient le Front.
 - Un changement cassant volontaire passe par une PR portant le label **`rupture-de-contrat`**, validée par le Front et le Back, avec la version majeure incrémentée. Le label fait passer oasdiff en simple avertissement.
 
+## Décisions d'architecture
+
+Les choix structurants du projet (stack, base de données, authentification, contrat d'API, tests…) et leurs raisons sont consignés dans des ADR : [`docs/adr/`](docs/adr/README.md).
+
 ## Développement sans Docker pour l'API
 
 ```bash
@@ -189,6 +193,7 @@ backend/
 │   └── unit/               # tests unitaires (permissions, validation, erreurs)
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
+docs/adr/                   # décisions d'architecture (ADR)
 docker-compose.yml
 Makefile                    # raccourcis : make up, make test…
 ```
