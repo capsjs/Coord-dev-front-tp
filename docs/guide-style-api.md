@@ -2,8 +2,6 @@
 
 > SCRUM-66 · règles pour écrire une route dans [`backend/openapi.yaml`](../backend/openapi.yaml).
 > Les règles marquées 🤖 sont vérifiées automatiquement par Spectral (`make lint` et CI).
-> Faire évoluer le contrat (versioning, dépréciation, changements cassants) : section « Contrat d'API » du [README](../README.md#contrat-dapi).
-> Pourquoi ces choix : [ADR-0008](adr/0008-contrat-api-openapi.md) (contrat), [ADR-0004](adr/0004-authentification-jwt.md) (JWT), [ADR-0005](adr/0005-roles-et-autorisations.md) (rôles).
 
 ## 1. Routes
 
