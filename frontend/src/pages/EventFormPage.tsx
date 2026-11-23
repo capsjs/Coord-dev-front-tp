@@ -35,7 +35,10 @@ function EventFormPage() {
         setFormData({
           title: event.title,
           description: event.description,
-          date: event.date.slice(0, 10),
+          date: new Date(
+            new Date(event.date).getTime() -
+              new Date(event.date).getTimezoneOffset() * 60000
+          ).toISOString().slice(0, 16),          
           location: event.location,
           price: event.price,
           currency: event.currency,
@@ -61,29 +64,34 @@ function EventFormPage() {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
+ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError("");
+  setSubmitting(true);
 
-    try {
-      if (isEditMode) {
-        await updateEvent(Number(id), formData);
-      } else {
-        await createEvent(formData);
-      }
+  try {
+    const payload = {
+      ...formData,
+      date: new Date(formData.date).toISOString(),
+    };
 
-      navigate("/events");
-    } catch {
-      setError(
-        isEditMode
-          ? "Impossible de modifier l'événement."
-          : "Impossible de créer l'événement."
-      );
-    } finally {
-      setSubmitting(false);
+    if (isEditMode) {
+      await updateEvent(Number(id), payload);
+    } else {
+      await createEvent(payload);
     }
-  };
+
+    navigate("/events");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Une erreur est survenue lors de l'enregistrement."
+    );
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   if (loading) {
     return <p>Chargement de l'événement...</p>;
@@ -120,11 +128,11 @@ function EventFormPage() {
         </div>
 
         <div>
-          <label htmlFor="date">Date</label>
+         <label htmlFor="date">Date et heure</label>
           <input
             id="date"
             name="date"
-            type="date"
+            type="datetime-local"
             value={formData.date}
             onChange={handleChange}
             required

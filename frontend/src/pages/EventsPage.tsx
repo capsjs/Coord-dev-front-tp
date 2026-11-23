@@ -1,75 +1,75 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { getEvents, deleteEvent } from '../api/events'
-import type { Event } from '../types/event'
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { getEvents, deleteEvent } from "../api/events";
+import type { Event } from "../types/event";
+import { useAuth } from "../auth/useAuth";
 
 export function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { user } = useAuth();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadEvents() {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
-        const data = await getEvents()
-        setEvents(data)
+        const data = await getEvents();
+        setEvents(data);
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Une erreur est survenue.'
-        )
+          err instanceof Error ? err.message : "Une erreur est survenue.",
+        );
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadEvents()
-  }, [])
+    loadEvents();
+  }, []);
 
   async function handleDelete(id: number) {
     const confirmed = window.confirm(
-      'Es-tu sûr de vouloir supprimer cet événement ?'
-    )
+      "Es-tu sûr de vouloir supprimer cet événement ?",
+    );
 
-    if (!confirmed) return
+    if (!confirmed) return;
 
     try {
-      setDeletingId(id)
-      setError(null)
+      setDeletingId(id);
+      setError(null);
 
-      await deleteEvent(id)
+      await deleteEvent(id);
 
       setEvents((currentEvents) =>
-        currentEvents.filter((event) => event.id !== id)
-      )
+        currentEvents.filter((event) => event.id !== id),
+      );
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Impossible de supprimer cet événement.'
-      )
+          : "Impossible de supprimer cet événement.",
+      );
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
   }
 
   // Formater le prix selon la devise
   function formatPrice(price: number, currency: string) {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
       currency,
-    }).format(price)
+    }).format(price);
   }
 
   if (loading) {
-    return <p>Chargement des événements...</p>
+    return <p>Chargement des événements...</p>;
   }
 
   return (
@@ -77,12 +77,13 @@ export function EventsPage() {
       <div className="events-header">
         <div>
           <h1>Événements</h1>
-          <p>Retrouve tous les événements disponibles.</p>
         </div>
 
-        <Link to="/events/new" className="button">
-          Créer un événement
-        </Link>
+        {user && ["organizer", "admin"].includes(user.role) && (
+          <Link to="/events/new" className="button">
+            Créer un événement
+          </Link>
+        )}
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -99,8 +100,14 @@ export function EventsPage() {
                 <p>{event.description}</p>
 
                 <p>
-                  <strong>Date :</strong>{' '}
-                  {new Date(event.date).toLocaleDateString('fr-FR')}
+                  <strong>Date :</strong>{" "}
+                  {new Date(event.date).toLocaleString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
                 </p>
 
                 <p>
@@ -108,7 +115,11 @@ export function EventsPage() {
                 </p>
 
                 <p>
-                  <strong>Prix :</strong>{' '}
+                  <strong>Organisateur :</strong> {event.organizer.name}
+                </p>
+
+                <p>
+                  <strong>Prix :</strong>{" "}
                   {formatPrice(event.price, event.currency)}
                 </p>
               </div>
@@ -134,9 +145,7 @@ export function EventsPage() {
                   disabled={deletingId === event.id}
                   onClick={() => handleDelete(event.id)}
                 >
-                  {deletingId === event.id
-                    ? 'Suppression...'
-                    : 'Supprimer'}
+                  {deletingId === event.id ? "Suppression..." : "Supprimer"}
                 </button>
               </div>
             </article>
@@ -144,5 +153,5 @@ export function EventsPage() {
         </div>
       )}
     </section>
-  )
+  );
 }

@@ -1,4 +1,3 @@
-
 /* ========================================
    IDENTITÉ VISUELLE COORD EVENTS
 ======================================== */
@@ -27,9 +26,9 @@
 
   --radius: 12px;
   --shadow: 0 4px 16px rgb(30 58 95 / 0.06);
-  --shadow-hover: 0 10px 25px rgb(30 58 95 / 0.10);
+  --shadow-hover: 0 10px 25px rgb(30 58 95 / 0.1);
 
-  font-family: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: Inter, system-ui, "Segoe UI", Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: var(--text);
@@ -174,7 +173,9 @@ button,
   text-decoration: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease,
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
@@ -280,7 +281,9 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .role-card:hover {
@@ -333,14 +336,16 @@ select {
   border: 1px solid var(--border);
   border-radius: 9px;
   outline: none;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgb(30 58 95 / 0.10);
+  box-shadow: 0 0 0 3px rgb(30 58 95 / 0.1);
 }
 
 textarea {
@@ -441,5 +446,122 @@ textarea {
 
   .details dd {
     margin-bottom: 0.8rem;
+  }
+}
+
+/* ========================================
+   CARTES DES ÉVÉNEMENTS
+======================================== */
+
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.events-header p {
+  margin-bottom: 0;
+}
+
+/* Grille responsive */
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+/* Carte */
+.event-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Contenu */
+.event-card-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+.event-card-content h2 {
+  font-size: 1.25rem;
+  margin: 0 0 0.8rem;
+  color: var(--primary);
+}
+
+.event-card-content p {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.event-card-content p strong {
+  color: var(--text);
+}
+
+/* Actions en bas de carte */
+.event-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.event-card-actions button,
+.event-card-actions a {
+  flex: 1;
+  text-align: center;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* Tablette */
+@media (max-width: 950px) {
+  .events-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+  .events-list {
+    grid-template-columns: 1fr;
+  }
+
+  .events-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .event-card-content {
+    padding: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-card {
+    transition: none;
+  }
+
+  .event-card:hover {
+    transform: none;
   }
 }
