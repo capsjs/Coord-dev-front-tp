@@ -1,8 +1,42 @@
 # Règles de lint du contrat d'API (backend/openapi.yaml), lancées par `npm run lint:api` et en CI.
 # Base : règles recommandées OpenAPI de Spectral (https://docs.stoplight.io/docs/spectral).
+# Les règles « coord-* » appliquent le guide de style de l'équipe : docs/guide-style-api.md.
 extends: ["spectral:oas"]
 
 rules:
+  # Guide §1 : toutes les routes sont sous /api/.
+  coord-paths-api-prefix:
+    description: Les routes doivent commencer par /api/.
+    message: "« {{property}} » doit commencer par /api/"
+    severity: error
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^/api(/|$)"
+
+  # Guide §1 : segments en minuscules et kebab-case ; paramètres de chemin entre accolades.
+  coord-paths-kebab-case:
+    description: Les segments de route doivent être en minuscules et en kebab-case.
+    message: "« {{property}} » : segments en minuscules et kebab-case (ex. /api/event-categories/{id})"
+    severity: error
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^(/([a-z0-9]+(-[a-z0-9]+)*|\\{[a-zA-Z]+\\}))+$"
+
+  # Guide §1 : pas de / final.
+  coord-paths-no-trailing-slash:
+    description: Les routes ne doivent pas se terminer par /.
+    message: "« {{property}} » ne doit pas se terminer par /"
+    severity: error
+    given: "$.paths[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: ".+/$"
+
   # Convention de l'équipe : champs JSON en camelCase (organizerId, createdAt…).
   coord-properties-camel-case:
     description: Les champs des schémas doivent être en camelCase.

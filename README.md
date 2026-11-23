@@ -114,11 +114,13 @@ Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont re
 
 [`backend/openapi.yaml`](backend/openapi.yaml) est la **source de vérité** : on modifie d'abord le contrat, on le fait valider par le Front et le Back, puis on code.
 
+**Conventions** (nommage des routes et des champs, codes HTTP, format des erreurs, pagination) : [guide de style de l'API](docs/guide-style-api.md). Les règles de nommage sont vérifiées par Spectral.
+
 **Vérifications automatiques** (workflow *CI Contrat d'API*, à chaque PR qui touche le contrat) :
 
 | Vérification | Outil | En local |
 | ------------ | ----- | -------- |
-| Contrat valide, règles OpenAPI recommandées et règles de l'équipe ([`backend/.spectral.yaml`](backend/.spectral.yaml) : champs en camelCase, 401 documenté sur les routes protégées) | Spectral | `make lint` |
+| Contrat valide, règles OpenAPI recommandées et règles de l'équipe ([`backend/.spectral.yaml`](backend/.spectral.yaml), voir le [guide de style](docs/guide-style-api.md)) | Spectral | `make lint` |
 | Aucun changement cassant par rapport à la branche cible | oasdiff | — |
 
 **Conformité de l'API au contrat** (à l'exécution, via `express-openapi-validator`) :
@@ -195,7 +197,7 @@ backend/
 │   └── unit/               # tests unitaires (permissions, validation, erreurs)
 └── Dockerfile
 frontend/                   # interface React (voir frontend/README.md)
-docs/                       # plan de test, Definition of Done, exigences et matrice de traçabilité
+docs/                       # ADR, guide de style de l'API, plan de test, Definition of Done, matrice de traçabilité
 docs/adr/                   # décisions d'architecture (ADR)
 docker-compose.yml
 Makefile                    # raccourcis : make up, make test…
