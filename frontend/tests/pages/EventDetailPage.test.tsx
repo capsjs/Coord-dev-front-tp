@@ -4,15 +4,24 @@ import { MemoryRouter, Route, Routes } from "react-router";
 
 import { EventDetailPage } from "../../src/pages/EventDetailPage";
 import { getEventById, deleteEvent } from "../../src/api/events";
+import { useAuth } from "../../src/auth/useAuth";
 import type { Event } from "../../src/types/event";
+import type { User } from "../../src/types/user";
 
+// Simulation des appels API
 vi.mock("../../src/api/events", () => ({
   getEventById: vi.fn(),
   deleteEvent: vi.fn(),
 }));
 
+// Simulation du système d'authentification
+vi.mock("../../src/auth/useAuth", () => ({
+  useAuth: vi.fn(),
+}));
+
 const mockedGetEventById = vi.mocked(getEventById);
 const mockedDeleteEvent = vi.mocked(deleteEvent);
+const mockedUseAuth = vi.mocked(useAuth);
 
 const mockEvent: Event = {
   id: 1,
@@ -29,6 +38,32 @@ const mockEvent: Event = {
   },
 };
 
+const organizer: User = {
+  id: 2,
+  name: "Jean Dupont",
+  email: "jean@example.com",
+  role: "organizer",
+  createdAt: "2026-11-01T10:00:00.000Z",
+  updatedAt: "2026-11-01T10:00:00.000Z",
+};
+
+// Simuler une session utilisateur
+function mockUser(user: User | null) {
+  mockedUseAuth.mockReturnValue({
+    user,
+    loading: false,
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+  });
+}
+
+// Simuler l'organisateur propriétaire
+function mockOrganizer() {
+  mockUser(organizer);
+}
+
+// Afficher le composant dans un routeur de test
 function renderPage(path = "/events/1") {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -43,7 +78,12 @@ function renderPage(path = "/events/1") {
 describe("EventDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Par défaut : visiteur non connecté
+    mockUser(null);
+
     mockedGetEventById.mockResolvedValue(mockEvent);
+    mockedDeleteEvent.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -106,7 +146,25 @@ describe("EventDetailPage", () => {
     expect(mockedGetEventById).not.toHaveBeenCalled();
   });
 
+  it("masque les actions Modifier et Supprimer pour un visiteur", async () => {
+    renderPage();
+
+    await screen.findByText("Conférence React");
+
+    expect(
+      screen.queryByRole("link", { name: "Modifier" }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: "Supprimer" }),
+    ).not.toBeInTheDocument();
+
+    expect(mockedDeleteEvent).not.toHaveBeenCalled();
+  });
+
   it("annule la suppression si l'utilisateur refuse", async () => {
+    mockOrganizer();
+
     const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(false);
 
     renderPage();
@@ -124,9 +182,9 @@ describe("EventDetailPage", () => {
   });
 
   it("supprime l'événement et redirige vers la liste", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
+    mockOrganizer();
 
-    mockedDeleteEvent.mockResolvedValue(undefined);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
 
     renderPage();
 
@@ -146,6 +204,8 @@ describe("EventDetailPage", () => {
   });
 
   it("affiche une erreur si la suppression échoue", async () => {
+    mockOrganizer();
+
     vi.spyOn(window, "confirm").mockReturnValue(true);
 
     mockedDeleteEvent.mockRejectedValue(new Error("Suppression non autorisée"));
@@ -167,5 +227,91 @@ describe("EventDetailPage", () => {
     expect(mockedDeleteEvent).toHaveBeenCalledWith(1);
 
     expect(screen.queryByText("Liste des événements")).not.toBeInTheDocument();
+  });
+
+  it("masque les actions pour un participant connecté", async () => {
+    mockUser({
+      ...organizer,
+      id: 3,
+      role: "participant",
+    });
+
+    renderPage();
+
+    await screen.findByRole("heading", {
+      name: "Conférence React",
+    });
+
+    expect(
+      screen.queryByRole("link", { name: "Modifier" }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: "Supprimer" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("masque les actions pour un organisateur non propriétaire", async () => {
+    mockUser({
+      ...organizer,
+      id: 99,
+      role: "organizer",
+    });
+
+    renderPage();
+
+    await screen.findByRole("heading", {
+      name: "Conférence React",
+    });
+
+    expect(
+      screen.queryByRole("link", { name: "Modifier" }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: "Supprimer" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("autorise les actions pour l'organisateur propriétaire", async () => {
+    mockOrganizer();
+
+    renderPage();
+
+    await screen.findByRole("heading", {
+      name: "Conférence React",
+    });
+
+    expect(screen.getByRole("link", { name: "Modifier" })).toHaveAttribute(
+      "href",
+      "/events/1/edit",
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Supprimer" }),
+    ).toBeInTheDocument();
+  });
+
+  it("autorise les actions pour un administrateur", async () => {
+    mockUser({
+      ...organizer,
+      id: 99,
+      role: "admin",
+    });
+
+    renderPage();
+
+    await screen.findByRole("heading", {
+      name: "Conférence React",
+    });
+
+    expect(screen.getByRole("link", { name: "Modifier" })).toHaveAttribute(
+      "href",
+      "/events/1/edit",
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Supprimer" }),
+    ).toBeInTheDocument();
   });
 });
