@@ -3,7 +3,7 @@
 > Fichier généré par `cd backend && npm run matrix` à partir de [`exigences.json`](exigences.json)
 > et des titres des tests (`[F01.3]`…). Ne pas modifier à la main : la CI vérifie qu'il est à jour.
 
-Version courante du contrat d'API : **1.1.0** · 41 exigences · 34 tests reliés.
+Version courante du contrat d'API : **1.2.0** · 41 exigences · 34 tests reliés.
 
 | Statut | Nombre |
 |---|---|

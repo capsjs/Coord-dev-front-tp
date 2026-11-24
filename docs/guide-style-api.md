@@ -48,8 +48,8 @@ Une action sans ressource à renvoyer répond aussi `204` (ex. `PUT /api/auth/me
 
 | Code | Quand | Exemple de message |
 | ---- | ----- | ------------------ |
-| `400` | Requête invalide : corps, paramètre, format ou règle métier non respectés. **Toute erreur de validation est un 400** (nous n'utilisons pas `422`) | `Champ « date » invalide : doit respecter le format date-time` |
-| `401` | Jeton absent, invalide ou expiré ; identifiants incorrects. 🤖 Toute route protégée (`security`) documente ce code | `Authentification requise` · `Session expirée : reconnectez-vous` |
+| `400` | Requête invalide : corps, paramètre, format ou règle métier non respectés. **Toute erreur de validation est un 400** (nous n'utilisons pas `422`). Aussi : mot de passe **redemandé** incorrect alors que l'utilisateur est connecté | `Champ « date » invalide : doit respecter le format date-time` · `Mot de passe actuel incorrect` |
+| `401` | **Uniquement les problèmes de session** : jeton absent, invalide ou expiré ; identifiants incorrects à la connexion (pas encore de session). Le front traite un 401 reçu avec un jeton comme une session expirée et déconnecte l'utilisateur : ne jamais renvoyer 401 à un utilisateur dont la session est valide. 🤖 Toute route protégée (`security`) documente ce code | `Authentification requise` · `Session expirée : reconnectez-vous` · `Email ou mot de passe incorrect` |
 | `403` | Connecté, mais pas le droit (rôle insuffisant, pas propriétaire) | `Seul l'organisateur de l'événement peut le modifier ou le supprimer` |
 | `404` | Ressource ou route inexistante | `Événement introuvable` · `Route inconnue` |
 | `409` | Conflit avec l'état actuel (doublon) | `Un compte existe déjà avec cet email` |

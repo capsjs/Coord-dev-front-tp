@@ -59,7 +59,8 @@ router.put('/me/password', requireAuth, async (req, res) => {
 
   const user = await getUserOr404(req.user.id);
   if (!(await checkPassword(currentPassword, user.password_hash))) {
-    throw unauthorized('Mot de passe actuel incorrect');
+    // 400 et non 401 : l'utilisateur est connecté, sa session est valide (401 = problème de session).
+    throw badRequest('Mot de passe actuel incorrect');
   }
   await query('UPDATE users SET password_hash = ? WHERE id = ?', [await hashPassword(newPassword), user.id]);
   res.status(204).end();
@@ -69,7 +70,7 @@ router.delete('/me', requireAuth, async (req, res) => {
   const password = requirePassword(req.body?.password, 'password', { min: 1 });
   const user = await getUserOr404(req.user.id);
   if (!(await checkPassword(password, user.password_hash))) {
-    throw unauthorized('Mot de passe incorrect');
+    throw badRequest('Mot de passe incorrect');
   }
   await assertNotLastAdmin(user, 'supprimer ce compte');
   await query('DELETE FROM users WHERE id = ?', [user.id]);
