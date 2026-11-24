@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_REF: ${{ github.base_ref }}
-      # Rupture assumée : ajouter le label « rupture-de-contrat » à la PR (voir README, « Contrat d'API »).
+      # Rupture assumée : ajouter le label « rupture-de-contrat » à la PR (voir backend/README.md, « Contrat d'API »).
       RUPTURE_ACCEPTEE: ${{ contains(github.event.pull_request.labels.*.name, 'rupture-de-contrat') }}
     steps:
       - uses: actions/checkout@v4

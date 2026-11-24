@@ -1,20 +1,18 @@
-Branche créée à partir de Jira
-
 # Coord Events : gestionnaire d'événements
 
 Gestionnaire d'événements : API back-end (`backend/`) et interface web (`frontend/`), avec trois rôles :
 
 | Rôle          | Description                                                  |
 | ------------- | ------------------------------------------------------------ |
-| `admin`       | Gère les comptes (liste, changement de rôle, suppression)    |
-| `organizer`   | Crée et gère des événements *(à venir)*                       |
-| `participant` | S'inscrit aux événements *(à venir)*                          |
+| `admin`       | Gère les comptes (liste, changement de rôle, suppression) et peut gérer tous les événements |
+| `organizer`   | Crée, modifie et supprime ses événements                     |
+| `participant` | Consulte les événements ; s'y inscrit *(Sprint 3)*           |
 
-**Stack back** : Node.js 22 · Express 5 · MySQL 8.4 · JWT · Docker Compose
+**Stack back** : Node.js 22 · Express 5 · MySQL 8.4 · JWT · OpenAPI 3 → [`backend/README.md`](backend/README.md)
 
-**Stack front** : React 19 · TypeScript · Vite · React Router
+**Stack front** : React 19 · TypeScript · Vite · React Router → [`frontend/README.md`](frontend/README.md)
 
-> État actuel : **comptes et connexion** uniquement. Les événements arrivent ensuite.
+> État actuel : **comptes, connexion et gestion des événements** (création, modification, suppression, liste, fiche). Les inscriptions aux événements arrivent au Sprint 3.
 
 ## Démarrage rapide
 
@@ -22,40 +20,21 @@ Gestionnaire d'événements : API back-end (`backend/`) et interface web (`front
 make up
 ```
 
-La commande lance MySQL et l'API, puis attend que l'API réponde. Sans `make`, utilisez `docker compose up -d --build`.
-
-### Commandes `make`
-
-Tapez `make` seul pour afficher la liste.
-
-| Commande       | Effet                                                          |
-| -------------- | -------------------------------------------------------------- |
-| `make up`      | Démarre MySQL + l'API et attend qu'elle soit prête             |
-| `make down`    | Arrête les conteneurs (les données sont conservées)            |
-| `make build`   | Reconstruit et relance l'API après une modification du code    |
-| `make restart` | Redémarre l'API sans reconstruire                              |
-| `make rebuild` | Reconstruit tout sans cache                                    |
-| `make logs`    | Suit les logs de l'API (`make logs-db` pour MySQL)             |
-| `make ps`      | État des conteneurs                                            |
-| `make health`  | Vérifie que l'API répond                                       |
-| `make docs`    | Ouvre le Swagger dans le navigateur                            |
-| `make test`    | Lance les tests d'intégration (l'API doit tourner)             |
-| `make coverage` | Tests + mesure de la couverture du back (rapport HTML dans `backend/coverage/report/`) |
-| `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
-| `make db`      | Ouvre la console MySQL                                         |
-| `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
-| `make reset`   | **Vide la base** et redémarre (comptes de démo recréés)        |
-| `make install` | Installe les dépendances npm du back en local                  |
-| `make hooks`   | Active le hook pre-commit (compose + lint vérifiés à chaque commit) |
+La commande lance MySQL, l'API et le front, puis attend que l'API réponde. Sans `make`, utilisez `docker compose up -d --build`.
 
 | Service          | URL                                |
 | ---------------- | ---------------------------------- |
+| Front (conteneur) | http://localhost:8080             |
 | API              | http://localhost:3000/api          |
-| Swagger (doc)    | http://localhost:3000/api/docs     |
-| Spec OpenAPI     | http://localhost:3000/api/docs.json |
+| Swagger (doc testable) | http://localhost:3000/api/docs |
+| Doc publiée (consultation) | https://capsjs.github.io/Coord-dev-front-tp/ |
 | MySQL (depuis l'hôte) | `localhost:3307` (user `events` / `events`) |
 
-Au premier démarrage, l'API crée les tables puis les comptes ci-dessous.
+Pour développer le front avec rechargement automatique (http://localhost:5173) : voir [`frontend/README.md`](frontend/README.md). Pour l'API sans Docker : voir [`backend/README.md`](backend/README.md).
+
+### Comptes de démo
+
+Créés par l'API au premier démarrage :
 
 | Rôle        | Email                      | Mot de passe |
 | ----------- | -------------------------- | ------------ |
@@ -65,142 +44,73 @@ Au premier démarrage, l'API crée les tables puis les comptes ci-dessous.
 
 Les comptes de démo (organizer/participant) se désactivent avec `SEED_DEMO=false`.
 
+### Configuration
+
 Pour personnaliser (ports, secret JWT, identifiants admin…), copiez le fichier d'exemple puis éditez-le :
 
 ```bash
 cp .env.example .env
 ```
 
-Pour repartir d'une base vide : `make reset`.
+Liste complète des variables et de leur rôle : [`backend/README.md`](backend/README.md#variables-denvironnement).
 
-## Front-end
+### Commandes `make`
 
-```bash
-make up                 # l'API doit tourner
-cd frontend
-cp .env.example .env
-npm install
-npm run dev             # http://localhost:5173
-```
+Tapez `make` seul pour afficher la liste.
 
-Détails (pages, authentification, structure) : [`frontend/README.md`](frontend/README.md).
+| Commande       | Effet                                                          |
+| -------------- | -------------------------------------------------------------- |
+| `make up`      | Démarre MySQL + l'API + le front et attend que l'API soit prête |
+| `make down`    | Arrête les conteneurs (les données sont conservées)            |
+| `make build`   | Reconstruit et relance l'API après une modification du code    |
+| `make restart` | Redémarre l'API sans reconstruire                              |
+| `make rebuild` | Reconstruit tout sans cache                                    |
+| `make logs`    | Suit les logs de l'API (`make logs-db` pour MySQL)             |
+| `make ps`      | État des conteneurs                                            |
+| `make health`  | Vérifie que l'API répond                                       |
+| `make docs`    | Ouvre le Swagger dans le navigateur                            |
+| `make test`    | Lance les tests du back (l'API doit tourner)                   |
+| `make coverage` | Tests + mesure de la couverture du back (rapport HTML dans `backend/coverage/report/`) |
+| `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
+| `make db`      | Ouvre la console MySQL                                         |
+| `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
+| `make reset`   | **Vide la base** et redémarre (comptes de démo recréés)        |
+| `make install` | Installe les dépendances npm du back en local                  |
+| `make hooks`   | Active le hook pre-commit (compose + lint vérifiés à chaque commit), une fois par clone |
 
-## Routes de l'API
+## Intégration continue
 
-Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`). Une version publiée (consultation seulement, mise à jour à chaque merge sur `main`) est accessible sans lancer le projet : **https://capsjs.github.io/Coord-dev-front-tp/**. Pour les routes protégées, appelez d'abord `POST /api/auth/login`, puis collez le `token` reçu via le bouton **Authorize**.
+Chaque PR déclenche les workflows concernés par les fichiers modifiés (dossier [`.github/workflows/`](.github/workflows/)) :
 
-| Méthode  | Route                    | Accès     | Description                                   |
-| -------- | ------------------------ | --------- | --------------------------------------------- |
-| `GET`    | `/api/health`            | public    | État de l'API                                 |
-| `POST`   | `/api/auth/register`     | public    | Créer un compte (`participant` ou `organizer`) |
-| `POST`   | `/api/auth/login`        | public    | Se connecter, renvoie un JWT                  |
-| `GET`    | `/api/auth/me`           | connecté  | Voir son profil                               |
-| `PATCH`  | `/api/auth/me`           | connecté  | Modifier son nom / email                      |
-| `PUT`    | `/api/auth/me/password`  | connecté  | Changer son mot de passe                      |
-| `DELETE` | `/api/auth/me`           | connecté  | Supprimer son compte (mot de passe exigé)     |
-| `GET`    | `/api/admin/users`       | admin     | Lister les comptes (`?role=` pour filtrer)    |
-| `GET`    | `/api/admin/users/:id`   | admin     | Voir un compte                                |
-| `PATCH`  | `/api/admin/users/:id`   | admin     | Changer le rôle d'un compte                   |
-| `DELETE` | `/api/admin/users/:id`   | admin     | Supprimer un compte                           |
-| `GET`    | `/api/events`            | public    | Événements à venir, du plus proche au plus lointain |
-| `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur compris)  |
-| `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
-| `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
-| `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement |
+| Workflow | Déclenché par | Vérifie |
+| -------- | ------------- | ------- |
+| **CI Back** | `backend/`, `docker-compose.yml`, `Makefile`, exigences | compose valide, lint, tests unitaires, matrice de traçabilité, build Docker, tests d'intégration, couverture |
+| **CI Front** | `frontend/`, `docker-compose.yml`, `Makefile` | lint, tests et couverture, build, image Docker |
+| **CI Contrat d'API** | `backend/openapi.yaml` | Spectral, changements cassants (oasdiff) |
+| **Documentation de l'API** | `backend/openapi.yaml` | génère la doc Swagger ; la publie sur GitHub Pages après merge sur `main` |
 
-Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont renvoyées au format `{ "error": "message" }`.
+Le hook pre-commit (`make hooks`) fait une partie de ces vérifications avant même le commit.
 
-## Contrat d'API
+## Documentation
 
-[`backend/openapi.yaml`](backend/openapi.yaml) est la **source de vérité** : on modifie d'abord le contrat, on le fait valider par le Front et le Back, puis on code.
-
-**Conventions** (nommage des routes et des champs, codes HTTP, format des erreurs, pagination) : [guide de style de l'API](docs/guide-style-api.md). Les règles de nommage sont vérifiées par Spectral.
-
-**Documentation publiée** : à chaque merge sur `main` qui modifie le contrat, le workflow *Documentation de l'API* génère la page Swagger (`cd backend && npm run docs:build` pour la générer en local dans `backend/docs-site/`) et la publie sur [GitHub Pages](https://capsjs.github.io/Coord-dev-front-tp/).
-
-**Vérifications automatiques** (workflow *CI Contrat d'API*, à chaque PR qui touche le contrat) :
-
-| Vérification | Outil | En local |
-| ------------ | ----- | -------- |
-| Contrat valide, règles OpenAPI recommandées et règles de l'équipe ([`backend/.spectral.yaml`](backend/.spectral.yaml), voir le [guide de style](docs/guide-style-api.md)) | Spectral | `make lint` |
-| Aucun changement cassant par rapport à la branche cible | oasdiff | — |
-
-**Conformité de l'API au contrat** (à l'exécution, via `express-openapi-validator`) :
-
-- **Requêtes** : toute requête non conforme à `openapi.yaml` est refusée en `400` avec un message clair (ex. `Champ « date » invalide : doit respecter le format date-time`). Aucune conversion implicite : `"10"` n'est pas accepté pour un nombre.
-- **Réponses** : avec `VALIDATE_RESPONSES=true` (par défaut en dev, dans Docker Compose et en CI), une réponse non conforme au contrat devient une erreur `500`, loguée avec le préfixe `[contrat]`. Les tests d'intégration échouent donc dès que le code s'écarte du contrat. À désactiver en production.
-- Tests dédiés : [`backend/test/contract.test.js`](backend/test/contract.test.js).
-
-**Changement cassant** : tout ce qui casse un client existant (supprimer ou renommer une route ou un champ de réponse, rendre obligatoire un champ de requête, restreindre un type…). Ajouter une route ou un champ optionnel n'est pas cassant.
-
-### Versioning et dépréciation
-
-- `info.version` suit [SemVer](https://semver.org/lang/fr/) : *patch* pour une correction de doc, *mineure* pour un ajout compatible, *majeure* pour un changement cassant.
-- Avant de supprimer une route ou un champ, on le marque `deprecated: true` dans le contrat **au moins un sprint avant**, et on prévient le Front.
-- Un changement cassant volontaire passe par une PR portant le label **`rupture-de-contrat`**, validée par le Front et le Back, avec la version majeure incrémentée. Le label fait passer oasdiff en simple avertissement.
-
-## Décisions d'architecture
-
-Les choix structurants du projet (stack, base de données, authentification, contrat d'API, tests…) et leurs raisons sont consignés dans des ADR : [`docs/adr/`](docs/adr/README.md).
-
-## Développement sans Docker pour l'API
-
-```bash
-docker compose up -d db          # MySQL seul, exposé sur le port 3307
-cd backend
-npm install
-DB_PORT=3307 SEED_DEMO=true npm run dev
-```
-
-## Tests
-
-Stratégie (pyramide, outils, données, seuils, responsabilités) : [plan de test](docs/plan-de-test.md). Ce qui doit être vrai pour qu'une story soit terminée : [Definition of Done](docs/definition-of-done.md).
-
-Tests d'intégration (`node:test`) à lancer contre l'API démarrée :
-
-```bash
-make up
-make test
-```
-
-Chaque lancement crée des comptes de test jetables en base. `make reset` les efface.
-
-**Traçabilité** : chaque critère d'acceptation des user stories est une exigence de [`docs/exigences.json`](docs/exigences.json) (ex. `F01.3` : « une date passée est refusée »). Un test la cite dans son titre (`it('… [F01.3]')`), et `cd backend && npm run matrix` génère la [matrice exigence → test → version](docs/matrice-tracabilite.md). En CI, `npm run matrix:check` échoue si une exigence back livrée n'a aucun test, si un test cite une exigence inconnue ou si la matrice n'est pas à jour.
-
-Tests unitaires (règles métier pures, sans API ni base) : `cd backend && npm run test:unit`. Ils tournent aussi dans le job *Lint* de la CI.
-
-**Couverture de code** : `make coverage` démarre l'API en mesurant le code exécuté, lance les tests d'intégration puis unitaires, et produit un rapport (`backend/coverage/report/index.html`). Seuils minimaux dans [`backend/.c8rc.json`](backend/.c8rc.json) : 95 % des lignes, instructions et fonctions, 85 % des branches. En CI, la commande fait échouer le job sous ces seuils, affiche un résumé sur la page du workflow et publie le rapport HTML en artefact (`couverture-back`).
+| Document | Contenu |
+| -------- | ------- |
+| [`backend/README.md`](backend/README.md) | API : variables d'environnement, routes, contrat, tests, structure |
+| [`frontend/README.md`](frontend/README.md) | Interface : pages, authentification, structure |
+| [`docs/guide-style-api.md`](docs/guide-style-api.md) | Conventions de l'API : nommage, codes HTTP, erreurs, pagination |
+| [`docs/adr/`](docs/adr/README.md) | Décisions d'architecture et leurs raisons |
+| [`docs/plan-de-test.md`](docs/plan-de-test.md) | Stratégie de test : pyramide, outils, responsabilités |
+| [`docs/definition-of-done.md`](docs/definition-of-done.md) | Ce qui doit être vrai pour qu'une story soit terminée |
+| [`docs/matrice-tracabilite.md`](docs/matrice-tracabilite.md) | Quel test vérifie quel critère d'acceptation |
 
 ## Structure
 
 ```
-backend/
-├── openapi.yaml            # contrat d'API du MVP (source de vérité)
-├── src/
-│   ├── index.js            # démarrage : attente MySQL, migration, seed, serveur
-│   ├── app.js              # application Express (routes, Swagger, erreurs)
-│   ├── config.js           # configuration via variables d'environnement
-│   ├── db.js               # pool MySQL, migration
-│   ├── schema.sql          # schéma de la base
-│   ├── seed.js             # compte admin + comptes de démo
-│   ├── users.js            # accès aux données utilisateurs
-│   ├── events.js           # accès aux données événements
-│   ├── validation.js       # validation des entrées
-│   ├── errors.js           # erreurs HTTP + middleware d'erreur
-│   ├── openapi.js          # charge openapi.yaml pour Swagger
-│   ├── permissions.js      # règle « organisateur ou admin » (F08)
-│   ├── middleware/auth.js  # JWT, requireAuth, requireRole
-│   ├── middleware/eventAccess.js # requireEventManager (404 / 403)
-│   └── routes/
-│       ├── auth.js         # /api/auth/*
-│       ├── admin.js        # /api/admin/*
-│       └── events.js       # /api/events/*
-├── test/                   # tests d'intégration (auth, événements, contrat) + helpers.js
-│   └── unit/               # tests unitaires (permissions, validation, erreurs)
-└── Dockerfile
+backend/                    # API Express (voir backend/README.md)
 frontend/                   # interface React (voir frontend/README.md)
 docs/                       # ADR, guide de style de l'API, plan de test, Definition of Done, matrice de traçabilité
-docs/adr/                   # décisions d'architecture (ADR)
-docker-compose.yml
+.github/workflows/          # CI Back, CI Front, CI Contrat d'API, publication de la doc
+.githooks/                  # hook pre-commit de l'équipe (make hooks)
+docker-compose.yml          # MySQL + API + front ; docker-compose.coverage.yml pour make coverage
 Makefile                    # raccourcis : make up, make test…
 ```
