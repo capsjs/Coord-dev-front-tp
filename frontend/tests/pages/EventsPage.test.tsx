@@ -69,7 +69,7 @@ describe("EventsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("affiche un message si aucun événement n'existe", async () => {
+  it("[F04.3] affiche un message si aucun événement n'existe", async () => {
     renderPage();
 
     expect(
@@ -77,7 +77,7 @@ describe("EventsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("affiche les informations des événements", async () => {
+  it("[F04.2] affiche les informations des événements", async () => {
     mockedGetEvents.mockResolvedValue([mockEvent]);
 
     renderPage();
@@ -157,7 +157,7 @@ describe("Suppression d'un événement", () => {
     mockedGetEvents.mockResolvedValue([mockEvent]);
   });
 
-  it("supprime l'événement après confirmation", async () => {
+  it("[F03.1] supprime l'événement après confirmation", async () => {
     const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(true);
     mockedDeleteEvent.mockResolvedValue(undefined);
 
