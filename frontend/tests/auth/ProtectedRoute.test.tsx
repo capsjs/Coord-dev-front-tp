@@ -66,7 +66,7 @@ describe("ProtectedRoute", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("redirige un visiteur vers la connexion", async () => {
+  it("[F08b.1] redirige un visiteur vers la connexion", async () => {
     mockAuth(null);
 
     renderProtectedRoute();

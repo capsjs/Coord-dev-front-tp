@@ -71,7 +71,7 @@ describe("LoginPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("connecte l'utilisateur et redirige vers les événements", async () => {
+  it("[F08a.4] connecte l'utilisateur et redirige vers les événements", async () => {
     renderPage();
     fillForm();
 
@@ -87,7 +87,7 @@ describe("LoginPage", () => {
     expect(await screen.findByText("Liste des événements")).toBeInTheDocument();
   });
 
-  it("redirige vers la page initialement demandée", async () => {
+  it("[F08a.4] redirige vers la page initialement demandée", async () => {
     renderPage({
       pathname: "/login",
       state: { from: "/profile" },

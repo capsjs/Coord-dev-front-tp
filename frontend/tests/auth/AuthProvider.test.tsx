@@ -91,7 +91,7 @@ describe("AuthProvider", () => {
     expect(mockedGetMe).not.toHaveBeenCalled();
   });
 
-  it("connecte l'utilisateur et sauvegarde son token", async () => {
+  it("[F08a.4] connecte l'utilisateur et sauvegarde son token", async () => {
     mockedLogin.mockResolvedValue({
       token: "jwt-test",
       user: mockUser,
@@ -133,7 +133,7 @@ describe("AuthProvider", () => {
     expect(getToken()).toBe("jwt-inscription");
   });
 
-  it("déconnecte l'utilisateur et supprime son token", async () => {
+  it("[F08a.6] déconnecte l'utilisateur et supprime son token", async () => {
     saveToken("jwt-test");
     mockedGetMe.mockResolvedValue(mockUser);
 
@@ -167,7 +167,7 @@ describe("AuthProvider", () => {
     expect(screen.getByTestId("loading")).toHaveTextContent("Prêt");
   });
 
-  it("supprime un token invalide", async () => {
+  it("[F08b.3] supprime un token invalide", async () => {
     saveToken("jwt-expire");
 
     mockedGetMe.mockRejectedValue(new Error("Session expirée"));

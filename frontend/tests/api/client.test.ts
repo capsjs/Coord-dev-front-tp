@@ -96,7 +96,7 @@ describe("apiFetch", () => {
     });
   });
 
-  it("supprime le token et signale une session expirée après un 401", async () => {
+  it("[F08b.3] supprime le token et signale une session expirée après un 401", async () => {
     saveToken("jwt-expire");
 
     const sessionExpiredHandler = vi.fn();

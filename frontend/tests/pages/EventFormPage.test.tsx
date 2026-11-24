@@ -80,7 +80,7 @@ describe("EventFormPage", () => {
     mockedGetEventById.mockResolvedValue(mockEvent);
   });
 
-  it("affiche le formulaire de création", () => {
+  it("[F01.1] affiche le formulaire de création", () => {
     renderPage();
 
     expect(
@@ -98,7 +98,7 @@ describe("EventFormPage", () => {
     expect(screen.getByLabelText("Prix")).toHaveValue(0);
   });
 
-  it("crée un événement avec une date ISO 8601", async () => {
+  it("[F01.1] crée un événement avec une date ISO 8601", async () => {
     renderPage();
 
     fillForm();
@@ -126,7 +126,7 @@ describe("EventFormPage", () => {
     expect(await screen.findByText("Liste des événements")).toBeInTheDocument();
   });
 
-  it("préremplit le formulaire en mode modification", async () => {
+  it("[F02.1] préremplit le formulaire en mode modification", async () => {
     renderPage("/events/1/edit");
 
     expect(

@@ -100,7 +100,7 @@ describe("EventDetailPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("affiche les informations de l'événement", async () => {
+  it("[F05.1] affiche les informations de l'événement", async () => {
     renderPage();
 
     expect(
@@ -120,7 +120,7 @@ describe("EventDetailPage", () => {
     expect(mockedGetEventById).toHaveBeenCalledWith(1);
   });
 
-  it("affiche le message d'erreur 404 de l'API", async () => {
+  it("[F05.3] affiche le message d'erreur 404 de l'API", async () => {
     mockedGetEventById.mockRejectedValue(new Error("Événement introuvable"));
 
     renderPage("/events/999");
@@ -146,7 +146,7 @@ describe("EventDetailPage", () => {
     expect(mockedGetEventById).not.toHaveBeenCalled();
   });
 
-  it("masque les actions Modifier et Supprimer pour un visiteur", async () => {
+  it("[F02.3] masque les actions Modifier et Supprimer pour un visiteur", async () => {
     renderPage();
 
     await screen.findByText("Conférence React");
@@ -162,7 +162,7 @@ describe("EventDetailPage", () => {
     expect(mockedDeleteEvent).not.toHaveBeenCalled();
   });
 
-  it("annule la suppression si l'utilisateur refuse", async () => {
+  it("[F03.1] annule la suppression si l'utilisateur refuse", async () => {
     mockOrganizer();
 
     const confirmMock = vi.spyOn(window, "confirm").mockReturnValue(false);
@@ -229,7 +229,7 @@ describe("EventDetailPage", () => {
     expect(screen.queryByText("Liste des événements")).not.toBeInTheDocument();
   });
 
-  it("masque les actions pour un participant connecté", async () => {
+  it("[F02.3] masque les actions pour un participant connecté", async () => {
     mockUser({
       ...organizer,
       id: 3,
@@ -251,7 +251,7 @@ describe("EventDetailPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("masque les actions pour un organisateur non propriétaire", async () => {
+  it("[F02.3] [F08b.2] masque les actions pour un organisateur non propriétaire", async () => {
     mockUser({
       ...organizer,
       id: 99,
@@ -273,7 +273,7 @@ describe("EventDetailPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("autorise les actions pour l'organisateur propriétaire", async () => {
+  it("[F02.3] autorise les actions pour l'organisateur propriétaire", async () => {
     mockOrganizer();
 
     renderPage();
@@ -292,7 +292,7 @@ describe("EventDetailPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("autorise les actions pour un administrateur", async () => {
+  it("[F02.3] autorise les actions pour un administrateur", async () => {
     mockUser({
       ...organizer,
       id: 99,
