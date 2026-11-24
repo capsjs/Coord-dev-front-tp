@@ -87,7 +87,7 @@ Détails (pages, authentification, structure) : [`frontend/README.md`](frontend/
 
 ## Routes de l'API
 
-Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`). Pour les routes protégées, appelez d'abord `POST /api/auth/login`, puis collez le `token` reçu via le bouton **Authorize**.
+Toutes les routes sont documentées et testables dans **Swagger** (`/api/docs`). Une version publiée (consultation seulement, mise à jour à chaque merge sur `main`) est accessible sans lancer le projet : **https://capsjs.github.io/Coord-dev-front-tp/**. Pour les routes protégées, appelez d'abord `POST /api/auth/login`, puis collez le `token` reçu via le bouton **Authorize**.
 
 | Méthode  | Route                    | Accès     | Description                                   |
 | -------- | ------------------------ | --------- | --------------------------------------------- |
@@ -115,6 +115,8 @@ Authentification : en-tête `Authorization: Bearer <token>`. Les erreurs sont re
 [`backend/openapi.yaml`](backend/openapi.yaml) est la **source de vérité** : on modifie d'abord le contrat, on le fait valider par le Front et le Back, puis on code.
 
 **Conventions** (nommage des routes et des champs, codes HTTP, format des erreurs, pagination) : [guide de style de l'API](docs/guide-style-api.md). Les règles de nommage sont vérifiées par Spectral.
+
+**Documentation publiée** : à chaque merge sur `main` qui modifie le contrat, le workflow *Documentation de l'API* génère la page Swagger (`cd backend && npm run docs:build` pour la générer en local dans `backend/docs-site/`) et la publie sur [GitHub Pages](https://capsjs.github.io/Coord-dev-front-tp/).
 
 **Vérifications automatiques** (workflow *CI Contrat d'API*, à chaque PR qui touche le contrat) :
 
