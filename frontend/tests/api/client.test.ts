@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError, apiFetch, saveToken } from "../../src/api/client";
+import { SESSION_EXPIRED_EVENT, getToken } from "../../src/api/client";
 
 describe("apiFetch", () => {
   afterEach(() => {
@@ -93,5 +94,34 @@ describe("apiFetch", () => {
     await expect(apiFetch("/events")).rejects.toMatchObject({
       status: 0,
     });
+  });
+
+  it("supprime le token et signale une session expirée après un 401", async () => {
+    saveToken("jwt-expire");
+
+    const sessionExpiredHandler = vi.fn();
+
+    window.addEventListener(SESSION_EXPIRED_EVENT, sessionExpiredHandler);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Token expiré" }), {
+          status: 401,
+        }),
+      ),
+    );
+
+    try {
+      await expect(apiFetch("/auth/me")).rejects.toMatchObject({
+        status: 401,
+        message: "Token expiré",
+      });
+
+      expect(getToken()).toBeNull();
+      expect(sessionExpiredHandler).toHaveBeenCalledOnce();
+    } finally {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, sessionExpiredHandler);
+    }
   });
 });

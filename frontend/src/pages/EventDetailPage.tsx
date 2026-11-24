@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { getEventById, deleteEvent } from "../api/events";
+import { useAuth } from "../auth/useAuth";
 import type { Event } from "../types/event";
 
 export function EventDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,9 @@ export function EventDetailPage() {
   useEffect(() => {
     async function loadEvent() {
       try {
+        setLoading(true);
+        setError(null);
+
         if (!id || !Number.isInteger(Number(id))) {
           throw new Error("Identifiant invalide.");
         }
@@ -35,8 +40,15 @@ export function EventDetailPage() {
     loadEvent();
   }, [id]);
 
+  // Vérification des permissions
+  const canManage =
+    event !== null &&
+    (user?.role === "admin" ||
+      (user?.role === "organizer" && Number(user.id) === event.organizerId));
+
   async function handleDelete() {
-    if (!event) return;
+    // Protection supplémentaire côté composant
+    if (!event || !canManage || deleting) return;
 
     const confirmed = window.confirm(
       "Es-tu sûr de vouloir supprimer cet événement ?",
@@ -46,6 +58,8 @@ export function EventDetailPage() {
 
     try {
       setDeleting(true);
+      setError(null);
+
       await deleteEvent(event.id);
       navigate("/events");
     } catch (err) {
@@ -54,6 +68,7 @@ export function EventDetailPage() {
           ? err.message
           : "Impossible de supprimer cet événement.",
       );
+    } finally {
       setDeleting(false);
     }
   }
@@ -69,10 +84,12 @@ export function EventDetailPage() {
     return <p>Chargement de l'événement...</p>;
   }
 
-  if (error || !event) {
+  if (!event) {
     return (
       <section>
-        <p className="error">{error || "Événement introuvable."}</p>
+        <p className="error" role="alert">
+          {error || "Événement introuvable."}
+        </p>
         <Link to="/events">Retour aux événements</Link>
       </section>
     );
@@ -85,16 +102,25 @@ export function EventDetailPage() {
       <div className="event-detail-header">
         <h1>{event.title}</h1>
 
-        <div className="event-detail-actions">
-          <Link to={`/events/${event.id}/edit`} className="button-secondary">
-            Modifier
-          </Link>
+        {/* Actions réservées au propriétaire ou à l'admin */}
+        {canManage && (
+          <div className="event-detail-actions">
+            <Link to={`/events/${event.id}/edit`} className="button-secondary">
+              Modifier
+            </Link>
 
-          <button type="button" onClick={handleDelete} disabled={deleting}>
-            {deleting ? "Suppression..." : "Supprimer"}
-          </button>
-        </div>
+            <button type="button" onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Suppression..." : "Supprimer"}
+            </button>
+          </div>
+        )}
       </div>
+
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
       <div className="event-detail-content">
         <div>
