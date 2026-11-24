@@ -1,10 +1,11 @@
+import { Link, NavLink, Outlet } from "react-router";
+import { useAuth } from "../auth/useAuth";
+import { RoleBadge } from "./RoleBadge";
 
-import { Link, NavLink, Outlet } from 'react-router'
-import { useAuth } from '../auth/useAuth'
-import { RoleBadge } from './RoleBadge'
+const CURRENT_YEAR = new Date().getFullYear();
 
 export function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth();
 
   return (
     <div className="app-shell">
@@ -49,8 +50,8 @@ export function Layout() {
       </main>
 
       <footer className="footer">
-        <p>© {new Date().getFullYear()} CoordEvents — Tous droits réservés.</p>
+        <p>© {CURRENT_YEAR} CoordEvents — Tous droits réservés.</p>
       </footer>
     </div>
-  )
+  );
 }
