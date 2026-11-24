@@ -10,7 +10,8 @@
     "lint:api": "spectral lint openapi.yaml --fail-severity=warn",
     "test:unit": "node --test \"test/unit/**/*.test.js\"",
     "matrix": "node scripts/matrice.js",
-    "matrix:check": "node scripts/matrice.js --check"
+    "matrix:check": "node scripts/matrice.js --check",
+    "docs:build": "node scripts/build-docs.js"
   },
   "license": "ISC",
   "type": "module",
@@ -29,6 +30,7 @@
     "@stoplight/spectral-cli": "^6.17.1",
     "c8": "^12.0.0",
     "eslint": "^9.39.5",
-    "globals": "^17.14.0"
+    "globals": "^17.14.0",
+    "swagger-ui-dist": "^5.34.1"
   }
 }

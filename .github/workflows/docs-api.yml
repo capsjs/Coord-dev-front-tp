@@ -1,0 +1,60 @@
+name: Documentation de l'API
+
+# Génère la doc Swagger depuis backend/openapi.yaml et la publie sur GitHub Pages (SCRUM-67).
+# - PR qui touche le contrat : la doc est générée (vérifie que la génération fonctionne), pas publiée.
+# - Merge sur main : la doc publiée est mise à jour automatiquement.
+# Prérequis (une fois, admin du repo) : Settings → Pages → Source : « GitHub Actions ».
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/openapi.yaml'
+      - 'backend/scripts/build-docs.js'
+      - '.github/workflows/docs-api.yml'
+  pull_request:
+    paths:
+      - 'backend/openapi.yaml'
+      - 'backend/scripts/build-docs.js'
+      - '.github/workflows/docs-api.yml'
+  workflow_dispatch: # bouton « Run workflow » pour republier à la main
+
+# Une seule publication à la fois ; on ne coupe pas une publication en cours.
+concurrency:
+  group: docs-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Générer la documentation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run docs:build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: backend/docs-site
+
+  deploy:
+    name: Publier sur GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
