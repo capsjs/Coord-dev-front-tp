@@ -2,6 +2,8 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
+  // Fichiers générés (doc Swagger statique, rapports de couverture) : pas du code de l'équipe.
+  { ignores: ['docs-site/', 'coverage/'] },
   js.configs.recommended,
   {
     files: ['**/*.js'],

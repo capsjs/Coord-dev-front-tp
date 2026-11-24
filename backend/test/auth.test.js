@@ -118,7 +118,9 @@ describe('Mon compte', () => {
   it('change le mot de passe', async () => {
     const { token, email, password } = await register();
     const bad = await api('PUT', '/api/auth/me/password', { token, body: { currentPassword: 'faux', newPassword: 'nouveaumdp123' } });
-    assert.equal(bad.status, 401);
+    assert.equal(bad.status, 400, 'mot de passe actuel faux : 400, pas 401 (la session est valide)');
+    assert.equal(bad.body.error, 'Mot de passe actuel incorrect');
+    assert.equal((await api('GET', '/api/auth/me', { token })).status, 200, 'la session reste valide');
 
     const ok = await api('PUT', '/api/auth/me/password', { token, body: { currentPassword: password, newPassword: 'nouveaumdp123' } });
     assert.equal(ok.status, 204);
@@ -128,7 +130,10 @@ describe('Mon compte', () => {
 
   it('supprime son compte (mot de passe exigé) et invalide le jeton', async () => {
     const { token, password } = await register();
-    assert.equal((await api('DELETE', '/api/auth/me', { token, body: { password: 'faux' } })).status, 401);
+    const bad = await api('DELETE', '/api/auth/me', { token, body: { password: 'faux' } });
+    assert.equal(bad.status, 400, 'mot de passe faux : 400, pas 401 (la session est valide)');
+    assert.equal(bad.body.error, 'Mot de passe incorrect');
+    assert.equal((await api('GET', '/api/auth/me', { token })).status, 200, 'la session reste valide');
     assert.equal((await api('DELETE', '/api/auth/me', { token, body: { password } })).status, 204);
     assert.equal((await api('GET', '/api/auth/me', { token })).status, 401);
   });
