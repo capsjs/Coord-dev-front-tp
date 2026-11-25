@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db.js';
 import { badRequest, unauthorized } from '../errors.js';
+import { listEventsRegisteredBy, toPublicEvent } from '../events.js';
 import { requireAuth, signToken } from '../middleware/auth.js';
 import {
   assertNotLastAdmin,
@@ -41,6 +42,11 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   res.json(toPublicUser(await getUserOr404(req.user.id)));
+});
+
+router.get('/me/registrations', requireAuth, async (req, res) => {
+  const events = await listEventsRegisteredBy(req.user.id);
+  res.json(events.map(toPublicEvent));
 });
 
 router.patch('/me', requireAuth, async (req, res) => {

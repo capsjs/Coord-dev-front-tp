@@ -197,6 +197,76 @@ describe("Désinscription d'un événement (DELETE /api/events/:id/registrations
   });
 });
 
+describe('Mes inscriptions (GET /api/auth/me/registrations)', () => {
+  const myRegistrations = (token) => api('GET', '/api/auth/me/registrations', { token });
+
+  it("renvoie les événements auxquels je suis inscrit, au format Event, triés par date [F05.2]", async () => {
+    const organizer = await register('organizer');
+    const participant = await register('participant');
+    const later = await createEvent(organizer, inDays(60));
+    const sooner = await createEvent(organizer, inDays(10));
+    const notRegistered = await createEvent(organizer, inDays(20));
+    assert.equal((await registerTo(later.id, participant.token)).status, 201);
+    assert.equal((await registerTo(sooner.id, participant.token)).status, 201);
+
+    const res = await myRegistrations(participant.token);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.map((e) => e.id), [sooner.id, later.id]);
+    assert.ok(!res.body.some((e) => e.id === notRegistered.id));
+    assert.deepEqual(res.body[0], sooner);
+  });
+
+  it('inclut les événements passés', async () => {
+    const organizer = await register('organizer');
+    const participant = await register('participant');
+    const upcoming = await createEvent(organizer);
+    assert.equal((await registerTo(upcoming.id, participant.token)).status, 201);
+    const pastId = await createPastEvent(organizer);
+    await withDb((db) => db.query('INSERT INTO registrations (event_id, user_id) VALUES (?, ?)', [pastId, participant.user.id]));
+
+    const res = await myRegistrations(participant.token);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.map((e) => e.id), [pastId, upcoming.id]);
+  });
+
+  it("reflète l'inscription puis la désinscription [F05.2]", async () => {
+    const organizer = await register('organizer');
+    const participant = await register('participant');
+    const event = await createEvent(organizer);
+
+    assert.deepEqual((await myRegistrations(participant.token)).body, []);
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+    assert.deepEqual((await myRegistrations(participant.token)).body.map((e) => e.id), [event.id]);
+    assert.equal((await unregisterFrom(event.id, participant.token)).status, 204);
+    assert.deepEqual((await myRegistrations(participant.token)).body, []);
+  });
+
+  it("ne renvoie que mes inscriptions, pas celles des autres participants", async () => {
+    const organizer = await register('organizer');
+    const me = await register('participant');
+    const other = await register('participant');
+    const event = await createEvent(organizer);
+    assert.equal((await registerTo(event.id, other.token)).status, 201);
+
+    assert.deepEqual((await myRegistrations(me.token)).body, []);
+  });
+
+  it('renvoie une liste vide pour un organisateur ou un admin', async () => {
+    const organizer = await register('organizer');
+    const adminToken = (await api('POST', '/api/auth/login', { body: ADMIN })).body.token;
+    for (const token of [organizer.token, adminToken]) {
+      const res = await myRegistrations(token);
+      assert.equal(res.status, 200);
+      assert.deepEqual(res.body, []);
+    }
+  });
+
+  it('exige un jeton valide (401) [F08b.1]', async () => {
+    assert.equal((await myRegistrations()).status, 401);
+    assert.equal((await myRegistrations('faux.jeton.jwt')).status, 401);
+  });
+});
+
 describe('Suppression des inscriptions en cascade', () => {
   it("supprime les inscriptions quand l'événement est supprimé [F03.4]", async () => {
     const organizer = await register('organizer');

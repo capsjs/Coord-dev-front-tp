@@ -1,6 +1,6 @@
 # Coord Events : back-end
 
-API REST du gestionnaire d'événements Coord Events : comptes, événements et inscriptions (Sprint 3, en cours).
+API REST du gestionnaire d'événements Coord Events : comptes, événements et inscriptions.
 
 **Stack** : Node.js 22 · Express 5 · MySQL 8.4 (SQL sans ORM) · JWT + bcrypt · OpenAPI 3 · Docker Compose
 Pourquoi ces choix : [décisions d'architecture](../docs/adr/README.md).
@@ -67,6 +67,7 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `PATCH`  | `/api/auth/me`           | connecté  | Modifier son nom / email                      |
 | `PUT`    | `/api/auth/me/password`  | connecté  | Changer son mot de passe                      |
 | `DELETE` | `/api/auth/me`           | connecté  | Supprimer son compte (mot de passe exigé)     |
+| `GET`    | `/api/auth/me/registrations` | connecté | Événements auxquels je suis inscrit (passés compris), par date croissante |
 | `GET`    | `/api/admin/users`       | admin     | Lister les comptes (`?role=` pour filtrer)    |
 | `GET`    | `/api/admin/users/:id`   | admin     | Voir un compte                                |
 | `PATCH`  | `/api/admin/users/:id`   | admin     | Changer le rôle d'un compte                   |
@@ -78,8 +79,6 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement (et ses inscriptions) |
 | `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir (pas de double inscription) |
 | `DELETE` | `/api/events/:id/registrations/me` | connecté | Se désinscrire d'un événement (404 si pas inscrit) |
-
-La route `GET /api/auth/me/registrations` (mes inscriptions) est décrite dans le contrat mais pas encore codée (Sprint 3).
 
 Authentification : en-tête `Authorization: Bearer <token>`. Erreurs : `{ "error": "message" }`. Conventions complètes : [guide de style de l'API](../docs/guide-style-api.md).
 

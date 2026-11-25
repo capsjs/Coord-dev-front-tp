@@ -31,6 +31,13 @@ export async function listUpcomingEvents() {
   return query(`${SELECT_EVENTS} WHERE e.date > ? ORDER BY e.date ASC, e.id ASC`, [new Date()]);
 }
 
+export async function listEventsRegisteredBy(userId) {
+  return query(
+    `${SELECT_EVENTS} JOIN registrations r ON r.event_id = e.id WHERE r.user_id = ? ORDER BY e.date ASC, e.id ASC`,
+    [userId],
+  );
+}
+
 export async function getEventOr404(id) {
   const event = await findEventById(id);
   if (!event) throw notFound('Événement introuvable');
