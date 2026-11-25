@@ -6,18 +6,18 @@
 
 Version courante du contrat d'API : **1.2.0**
 
-**41 exigences** · **64 tests reliés** (43 back, 21 front)
+**41 exigences** · **68 tests reliés** (47 back, 21 front)
 
 ## Synthèse de couverture
 
 | Statut | Nombre |
 |---|---:|
 | Testé (back + front) | 9 |
-| Testé (back) | 18 |
+| Testé (back) | 19 |
 | Testé (back) · front à compléter | 3 |
 | Testé (front) | 3 |
 | Front non automatisé | 1 |
-| Sprint 3 | 7 |
+| Sprint 3 | 6 |
 
 La colonne **Version** désigne la version du contrat API ayant livré l’exigence côté backend.
 Un critère `back+front` nécessite au moins un test lié dans chaque couche.
@@ -85,7 +85,7 @@ La valeur « à renseigner » signifie qu'aucune PR n'est encore documentée pou
 
 | Exigence | Critère | Story Jira | Couche | Tests | Commit / PR | Version | Statut |
 |---|---|---|---|---|---|---|---|
-| **F08b.1** | Une action réservée sans être connecté est refusée (401) et le front redirige vers la connexion. | SCRUM-20 | back+front | **Back** : `backend/test/auth.test.js` › Connexion › exige un jeton valide sur /me<br>**Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › exige un jeton (401) et le rôle organizer ou admin (403)<br>**Back** : `backend/test/events.test.js` › Modification d'un événement (PUT /api/events/:id) › exige un jeton (401)<br>**Back** : `backend/test/events.test.js` › Suppression d'un événement (DELETE /api/events/:id) › exige un jeton (401)<br>**Back** : `backend/test/registrations.test.js` › Inscription à un événement (POST /api/events/:id/registrations) › exige un jeton valide (401)<br>**Front** : `frontend/tests/auth/ProtectedRoute.test.tsx` › ProtectedRoute › redirige un visiteur vers la connexion | [#10](https://github.com/capsjs/Coord-dev-front-tp/pull/10), [#21](https://github.com/capsjs/Coord-dev-front-tp/pull/21) | 1.1.0 | Testé (back + front) |
+| **F08b.1** | Une action réservée sans être connecté est refusée (401) et le front redirige vers la connexion. | SCRUM-20 | back+front | **Back** : `backend/test/auth.test.js` › Connexion › exige un jeton valide sur /me<br>**Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › exige un jeton (401) et le rôle organizer ou admin (403)<br>**Back** : `backend/test/events.test.js` › Modification d'un événement (PUT /api/events/:id) › exige un jeton (401)<br>**Back** : `backend/test/events.test.js` › Suppression d'un événement (DELETE /api/events/:id) › exige un jeton (401)<br>**Back** : `backend/test/registrations.test.js` › Inscription à un événement (POST /api/events/:id/registrations) › exige un jeton valide (401)<br>**Back** : `backend/test/registrations.test.js` › Désinscription d'un événement (DELETE /api/events/:id/registrations/me) › exige un jeton valide (401)<br>**Front** : `frontend/tests/auth/ProtectedRoute.test.tsx` › ProtectedRoute › redirige un visiteur vers la connexion | [#10](https://github.com/capsjs/Coord-dev-front-tp/pull/10), [#21](https://github.com/capsjs/Coord-dev-front-tp/pull/21) | 1.1.0 | Testé (back + front) |
 | **F08b.2** | Seul l'organisateur d'un événement peut le modifier ou le supprimer ; sinon 403. | SCRUM-20 | back | **Back** : `backend/test/events.test.js` › Modification d'un événement (PUT /api/events/:id) › refuse un autre organisateur ou un participant (403), sans rien modifier<br>**Back** : `backend/test/events.test.js` › Suppression d'un événement (DELETE /api/events/:id) › refuse un autre organisateur (403) et conserve l'événement<br>**Back** : `backend/test/unit/permissions.test.js` › canManageEvent (F08) › refuse un autre organisateur<br>**Back** : `backend/test/unit/permissions.test.js` › assertCanManageEvent › lève une erreur 403 sinon<br>**Front** : `frontend/tests/pages/EventDetailPage.test.tsx` › EventDetailPage › masque les actions pour un organisateur non propriétaire | [#10](https://github.com/capsjs/Coord-dev-front-tp/pull/10), [#21](https://github.com/capsjs/Coord-dev-front-tp/pull/21) | 1.1.0 | Testé (back) |
 | **F08b.3** | Quand la session expire, l'utilisateur doit se reconnecter. | SCRUM-20 | back+front | **Back** : `backend/test/auth.test.js` › Connexion › distingue une session expirée (pour que le front redirige vers la connexion)<br>**Front** : `frontend/tests/api/client.test.ts` › apiFetch › supprime le token et signale une session expirée après un 401<br>**Front** : `frontend/tests/auth/AuthProvider.test.tsx` › AuthProvider › supprime un token invalide | [#10](https://github.com/capsjs/Coord-dev-front-tp/pull/10), [#21](https://github.com/capsjs/Coord-dev-front-tp/pull/21) | 1.1.0 | Testé (back + front) |
 | **F08b.4** | Les routes de l'API sont protégées de la même façon que l'interface. | SCRUM-20 | back | **Back** : `backend/test/auth.test.js` › Connexion › refuse un jeton falsifié<br>**Back** : `backend/test/auth.test.js` › Administration des comptes › est interdite aux non-admins<br>**Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › exige un jeton (401) et le rôle organizer ou admin (403)<br>**Back** : `backend/test/registrations.test.js` › Inscription à un événement (POST /api/events/:id/registrations) › est réservée aux participants : refuse un organisateur et un admin (403) | [#10](https://github.com/capsjs/Coord-dev-front-tp/pull/10), [#21](https://github.com/capsjs/Coord-dev-front-tp/pull/21) | 1.1.0 | Testé (back) |
@@ -105,8 +105,8 @@ La valeur « à renseigner » signifie qu'aucune PR n'est encore documentée pou
 | Exigence | Critère | Story Jira | Couche | Tests | Commit / PR | Version | Statut |
 |---|---|---|---|---|---|---|---|
 | **F07.1** | Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit. | SCRUM-22 | front | — | — (à renseigner) | — | Sprint 3 |
-| **F07.2** | Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ». | SCRUM-22 | back+front | — | — (à renseigner) | — | Sprint 3 |
-| **F07.3** | Ma place est libérée pour les autres participants. | SCRUM-22 | back | — | — (à renseigner) | — | Sprint 3 |
+| **F07.2** | Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ». | SCRUM-22 | back+front | **Back** : `backend/test/registrations.test.js` › Désinscription d'un événement (DELETE /api/events/:id/registrations/me) › désinscrit l'utilisateur connecté (204) et supprime son inscription | — (à renseigner) | — | Sprint 3 |
+| **F07.3** | Ma place est libérée pour les autres participants. | SCRUM-22 | back | **Back** : `backend/test/registrations.test.js` › Désinscription d'un événement (DELETE /api/events/:id/registrations/me) › libère la place : le participant peut se réinscrire<br>**Back** : `backend/test/registrations.test.js` › Désinscription d'un événement (DELETE /api/events/:id/registrations/me) › ne supprime que l'inscription de l'utilisateur connecté | — (à renseigner) | 1.2.0 | Testé (back) |
 
 ## CT : Respect du contrat d'API (SCRUM-65 / SCRUM-75)
 

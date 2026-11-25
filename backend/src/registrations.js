@@ -1,5 +1,5 @@
 import { query } from './db.js';
-import { conflict } from './errors.js';
+import { conflict, notFound } from './errors.js';
 
 export const toPublicRegistration = (r) => ({
   eventId: r.event_id,
@@ -19,4 +19,9 @@ export async function createRegistration(eventId, userId) {
     [eventId, userId],
   );
   return registration;
+}
+
+export async function deleteRegistration(eventId, userId) {
+  const result = await query('DELETE FROM registrations WHERE event_id = ? AND user_id = ?', [eventId, userId]);
+  if (result.affectedRows === 0) throw notFound("Vous n'êtes pas inscrit à cet événement");
 }
