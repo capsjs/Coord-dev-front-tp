@@ -55,7 +55,7 @@ export async function updateEvent(id, { title, description, date, location, pric
   return getEventOr404(id);
 }
 
-/** Les inscriptions liées seront supprimées par la base (clé étrangère ON DELETE CASCADE, Sprint 3). */
+/** Les inscriptions liées sont supprimées par la base (clé étrangère ON DELETE CASCADE). */
 export async function deleteEvent(id) {
   await query('DELETE FROM events WHERE id = ?', [id]);
 }

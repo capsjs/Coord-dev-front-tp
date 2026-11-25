@@ -1,5 +1,5 @@
 /**
- * Matrice de traçabilité exigence → test → version (SCRUM-75).
+ * Matrice de traçabilité exigence → story Jira → test → PR → version (SCRUM-75).
  * npm run matrix       : génère docs/matrice-tracabilite.md
  * npm run matrix:check : vérifie les références, les tests backend et la matrice.
  * Sources : docs/exigences.json, backend/test et frontend/tests.
@@ -133,10 +133,28 @@ function formatTest(test) {
   return `**${layer}** : \`${escapeCell(test.file)}\` › ${suite}${escapeCell(test.title)}`;
 }
 
+function formatPrs(story) {
+  if (!story.prs?.length) return "— (à renseigner)";
+  const repo = "https://github.com/capsjs/Coord-dev-front-tp";
+  return story.prs
+    .map((pr) => `[#${pr}](${repo}/pull/${pr})`)
+    .join(", ");
+}
+
 function build() {
   const tests = taggedTests();
   const known = new Set(exigences.map((e) => e.id));
   const errors = [];
+
+  // Les PR sont associées aux stories Jira dans exigences.json.
+  // Une PR liée à une story ne prouve pas à elle seule la couverture de chaque critère.
+  for (const story of stories) {
+    if (!Array.isArray(story.prs) ||
+        story.prs.some((pr) => !Number.isInteger(pr) || pr <= 0) ||
+        new Set(story.prs).size !== story.prs.length) {
+      errors.push(`La story ${story.id} doit avoir un tableau « prs » de numéros de PR positifs et uniques.`);
+    }
+  }
 
   // Vérification des identifiants d'exigences.
   for (const test of tests) {
@@ -174,10 +192,10 @@ function build() {
   const frontCount = tests.filter((t) => t.layer === "front").length;
 
   const lines = [
-    "# Matrice de traçabilité exigence → test → version",
+    "# Matrice de traçabilité exigence → story Jira → test → PR → version",
     "",
     "> Fichier généré automatiquement par `cd backend && npm run matrix`.",
-    "> Sources : [`exigences.json`](exigences.json), tests backend et frontend.",
+    "> Sources : [`exigences.json`](exigences.json) (stories et PR), tests backend et frontend.",
     "> Ne pas modifier à la main : la CI vérifie qu’il est à jour.",
     "",
     `Version courante du contrat d'API : **${apiVersion}**`,
@@ -197,6 +215,8 @@ function build() {
     "La colonne **Version** désigne la version du contrat API ayant livré l’exigence côté backend.",
     "Un critère `back+front` nécessite au moins un test lié dans chaque couche.",
     "Les critères du Sprint 3 sont conservés comme non livrés.",
+    "La colonne **PR** liste les Pull Requests vérifiées associées à la story Jira ; cela ne signifie pas que chaque PR implémente individuellement chaque critère.",
+    "La valeur « à renseigner » signifie qu'aucune PR n'est encore documentée pour cette story.",
     "",
   ];
 
@@ -209,8 +229,8 @@ function build() {
     lines.push(`## ${story.id} : ${story.titre} (${story.jira})`, "");
 
     lines.push(
-      "| Exigence | Critère | Couche | Tests | Version | Statut |",
-      "|---|---|---|---|---|---|",
+      "| Exigence | Critère | Story Jira | Couche | Tests | Commit / PR | Version | Statut |",
+      "|---|---|---|---|---|---|---|---|",
     );
 
     for (const r of storyRows) {
@@ -219,7 +239,7 @@ function build() {
         : "—";
 
       lines.push(
-        `| **${r.id}** | ${escapeCell(r.critere)} | ${r.couche} | ${cell} | ${r.version ?? "—"} | ${STATUTS[r.statut]} |`,
+        `| **${r.id}** | ${escapeCell(r.critere)} | ${escapeCell(story.jira)} | ${r.couche} | ${cell} | ${formatPrs(story)} | ${r.version ?? "—"} | ${STATUTS[r.statut]} |`,
       );
     }
 

@@ -1,6 +1,6 @@
 # Coord Events : back-end
 
-API REST du gestionnaire d'événements Coord Events : comptes, événements, et inscriptions à venir (Sprint 3).
+API REST du gestionnaire d'événements Coord Events : comptes, événements et inscriptions (Sprint 3, en cours).
 
 **Stack** : Node.js 22 · Express 5 · MySQL 8.4 (SQL sans ORM) · JWT + bcrypt · OpenAPI 3 · Docker Compose
 Pourquoi ces choix : [décisions d'architecture](../docs/adr/README.md).
@@ -75,9 +75,10 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur compris)  |
 | `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
 | `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
-| `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement |
+| `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement (et ses inscriptions) |
+| `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir (pas de double inscription) |
 
-Les routes d'inscription (`/api/events/:id/registrations`, `/api/auth/me/registrations`) sont décrites dans le contrat mais pas encore codées (Sprint 3).
+Les autres routes d'inscription (`DELETE /api/events/:id/registrations/me`, `GET /api/auth/me/registrations`) sont décrites dans le contrat mais pas encore codées (Sprint 3).
 
 Authentification : en-tête `Authorization: Bearer <token>`. Erreurs : `{ "error": "message" }`. Conventions complètes : [guide de style de l'API](../docs/guide-style-api.md).
 
@@ -141,8 +142,9 @@ backend/
 │   ├── seed.js             # compte admin + comptes de démo
 │   ├── users.js            # accès aux données utilisateurs
 │   ├── events.js           # accès aux données événements
+│   ├── registrations.js    # accès aux données inscriptions
 │   ├── validation.js       # validation des entrées
-│   ├── permissions.js      # règle « organisateur ou admin » (F08)
+│   ├── permissions.js      # règles d'accès : organisateur ou admin (F08), inscription (F06)
 │   ├── errors.js           # erreurs HTTP + middleware d'erreur
 │   ├── openapi.js          # charge openapi.yaml
 │   ├── middleware/
@@ -154,6 +156,6 @@ backend/
 │       └── events.js       # /api/events/*
 └── test/
     ├── helpers.js          # appels HTTP, comptes de test, accès direct à la base
-    ├── *.test.js           # tests d'intégration (auth, événements, contrat)
+    ├── *.test.js           # tests d'intégration (auth, événements, inscriptions, contrat)
     └── unit/               # tests unitaires (permissions, validation, erreurs)
 ```
