@@ -6,7 +6,7 @@
 
 Version courante du contrat d'API : **1.2.0**
 
-**41 exigences** · **76 tests reliés** (43 back, 33 front)
+**41 exigences** · **78 tests reliés** (43 back, 35 front)
 
 ## Synthèse de couverture
 
@@ -105,7 +105,7 @@ La valeur « à renseigner » signifie qu'aucune PR n'est encore documentée pou
 | Exigence | Critère | Story Jira | Couche | Tests | Commit / PR | Version | Statut |
 |---|---|---|---|---|---|---|---|
 | **F07.1** | Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit. | SCRUM-22 | front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › RegistrationAction › propose de se désinscrire à un participant déjà inscrit<br>**Front** : `frontend/tests/components/registrationStatus.test.ts` › getRegistrationStatus › renvoie registered pour un participant déjà inscrit | — (à renseigner) | — | Sprint 3 |
-| **F07.2** | Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ». | SCRUM-22 | back+front | — | — (à renseigner) | — | Sprint 3 |
+| **F07.2** | Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ». | SCRUM-22 | back+front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur Se désinscrire › désinscrit le participant, confirme et remet S'inscrire<br>**Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur Se désinscrire › remet S'inscrire si l'utilisateur n'était plus inscrit (404) | — (à renseigner) | — | Sprint 3 |
 | **F07.3** | Ma place est libérée pour les autres participants. | SCRUM-22 | back | — | — (à renseigner) | — | Sprint 3 |
 
 ## CT : Respect du contrat d'API (SCRUM-65 / SCRUM-75)
