@@ -1,16 +1,16 @@
 {
-  "_comment": "Exigences du MVP = critères d'acceptation des user stories Jira. Un test les cite par leur id entre crochets dans son titre, ex. it('… [F01.3]'). Matrice générée : cd backend && npm run matrix. couche : back | front | back+front. statut : livre | sprint3. version : version de l'API (openapi.yaml) qui a livré l'exigence côté back.",
+  "_comment": "Exigences du MVP = critères d'acceptation des user stories Jira. Un test les cite par leur id entre crochets dans son titre, ex. it('… [F01.3]'). Matrice générée : cd backend && npm run matrix. couche : back | front | back+front. statut : livre | sprint3. version : version de l'API qui a livré l'exigence côté back. prs : numéros de PR GitHub associées à la story (sans garantir que chaque PR modifie chaque critère).",
   "stories": [
-    { "id": "F08a", "jira": "SCRUM-14", "titre": "Créer un compte et se connecter" },
-    { "id": "F01", "jira": "SCRUM-15", "titre": "Créer un événement" },
-    { "id": "F02", "jira": "SCRUM-16", "titre": "Modifier un événement" },
-    { "id": "F03", "jira": "SCRUM-17", "titre": "Supprimer un événement" },
-    { "id": "F04", "jira": "SCRUM-18", "titre": "Consulter la liste des événements" },
-    { "id": "F05", "jira": "SCRUM-19", "titre": "Consulter les détails d'un événement" },
-    { "id": "F08b", "jira": "SCRUM-20", "titre": "Protéger les accès selon le rôle" },
-    { "id": "F06", "jira": "SCRUM-21", "titre": "S'inscrire à un événement" },
-    { "id": "F07", "jira": "SCRUM-22", "titre": "Se désinscrire d'un événement" },
-    { "id": "CT", "jira": "SCRUM-65 / SCRUM-75", "titre": "Respect du contrat d'API" }
+    { "id": "F08a", "jira": "SCRUM-14", "titre": "Créer un compte et se connecter", "prs": [] },
+    { "id": "F01", "jira": "SCRUM-15", "titre": "Créer un événement", "prs": [4, 5] },
+    { "id": "F02", "jira": "SCRUM-16", "titre": "Modifier un événement", "prs": [4, 11] },
+    { "id": "F03", "jira": "SCRUM-17", "titre": "Supprimer un événement", "prs": [4, 11] },
+    { "id": "F04", "jira": "SCRUM-18", "titre": "Consulter la liste des événements", "prs": [4, 9] },
+    { "id": "F05", "jira": "SCRUM-19", "titre": "Consulter les détails d'un événement", "prs": [4, 9] },
+    { "id": "F08b", "jira": "SCRUM-20", "titre": "Protéger les accès selon le rôle", "prs": [10, 21] },
+    { "id": "F06", "jira": "SCRUM-21", "titre": "S'inscrire à un événement", "prs": [] },
+    { "id": "F07", "jira": "SCRUM-22", "titre": "Se désinscrire d'un événement", "prs": [] },
+    { "id": "CT", "jira": "SCRUM-65 / SCRUM-75", "titre": "Respect du contrat d'API", "prs": [3, 8] }
   ],
   "exigences": [
     { "id": "F08a.1", "critere": "L'inscription demande un e-mail et un mot de passe (validés).", "couche": "back+front", "statut": "livre", "version": "1.0.0" },
