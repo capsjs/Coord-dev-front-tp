@@ -1,0 +1,138 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
+
+import { RegistrationAction } from "../../src/components/RegistrationAction";
+import { getMyRegistrations } from "../../src/api/registrations";
+import { useAuth } from "../../src/auth/useAuth";
+
+import type { Event } from "../../src/types/event";
+import type { User } from "../../src/types/user";
+
+// Simulation des appels API
+vi.mock("../../src/api/registrations", () => ({
+  getMyRegistrations: vi.fn(),
+}));
+
+// Simulation du système d'authentification
+vi.mock("../../src/auth/useAuth", () => ({
+  useAuth: vi.fn(),
+}));
+
+const mockedGetMyRegistrations = vi.mocked(getMyRegistrations);
+const mockedUseAuth = vi.mocked(useAuth);
+
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
+const mockEvent: Event = {
+  id: 1,
+  title: "Conférence React",
+  description: "Découverte de React",
+  date: new Date(Date.now() + 7 * ONE_DAY).toISOString(),
+  location: "Montpellier",
+  price: 15,
+  currency: "EUR",
+  organizerId: 2,
+  organizer: { id: 2, name: "Jean Dupont" },
+};
+
+const participant: User = {
+  id: 3,
+  name: "Paula Participante",
+  email: "paula@example.com",
+  role: "participant",
+  createdAt: "2026-11-01T10:00:00.000Z",
+  updatedAt: "2026-11-01T10:00:00.000Z",
+};
+
+function mockUser(user: User | null) {
+  mockedUseAuth.mockReturnValue({
+    user,
+    loading: false,
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+  });
+}
+
+function renderAction(event: Event = mockEvent) {
+  return render(
+    <MemoryRouter initialEntries={["/events/1"]}>
+      <RegistrationAction event={event} />
+    </MemoryRouter>,
+  );
+}
+
+describe("RegistrationAction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUser(null);
+    mockedGetMyRegistrations.mockResolvedValue([]);
+  });
+
+  it("[F06.4] envoie un visiteur vers la connexion", () => {
+    renderAction();
+
+    expect(screen.getByRole("link", { name: "S'inscrire" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(mockedGetMyRegistrations).not.toHaveBeenCalled();
+  });
+
+  it("[F06.1] propose de s'inscrire à un participant pas encore inscrit", async () => {
+    mockUser(participant);
+
+    renderAction();
+
+    expect(
+      await screen.findByRole("button", { name: "S'inscrire" }),
+    ).toBeInTheDocument();
+  });
+
+  it("[F07.1] propose de se désinscrire à un participant déjà inscrit", async () => {
+    mockUser(participant);
+    mockedGetMyRegistrations.mockResolvedValue([mockEvent]);
+
+    renderAction();
+
+    expect(
+      await screen.findByRole("button", { name: "Se désinscrire" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Vous êtes inscrit à cet événement."),
+    ).toBeInTheDocument();
+  });
+
+  it("[F06.5] n'affiche aucun bouton pour un événement passé", () => {
+    renderAction({
+      ...mockEvent,
+      date: new Date(Date.now() - 7 * ONE_DAY).toISOString(),
+    });
+
+    expect(screen.getByText("Cet événement est terminé.")).toBeInTheDocument();
+    expect(screen.queryByText("S'inscrire")).not.toBeInTheDocument();
+  });
+
+  it("n'affiche rien pour un organisateur", () => {
+    mockUser({ ...participant, role: "organizer" });
+
+    renderAction();
+
+    expect(screen.queryByText("S'inscrire")).not.toBeInTheDocument();
+    expect(mockedGetMyRegistrations).not.toHaveBeenCalled();
+  });
+
+  it("affiche l'erreur si les inscriptions ne peuvent pas être chargées", async () => {
+    mockUser(participant);
+    mockedGetMyRegistrations.mockRejectedValue(
+      new Error("Session expirée : reconnectez-vous"),
+    );
+
+    renderAction();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Session expirée : reconnectez-vous",
+    );
+  });
+});

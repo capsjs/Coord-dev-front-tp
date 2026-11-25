@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { getEventById, deleteEvent } from "../api/events";
 import { useAuth } from "../auth/useAuth";
+import { RegistrationAction } from "../components/RegistrationAction";
 import type { Event } from "../types/event";
 
 export function EventDetailPage() {
@@ -153,6 +154,8 @@ export function EventDetailPage() {
           <p>
             <strong>Prix :</strong> {formatPrice(event.price, event.currency)}
           </p>
+
+          <RegistrationAction event={event} />
         </div>
       </div>
     </section>
