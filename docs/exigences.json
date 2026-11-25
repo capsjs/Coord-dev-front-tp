@@ -34,7 +34,7 @@
     { "id": "F03.1", "critere": "Une confirmation est demandée avant la suppression.", "couche": "front", "statut": "livre" },
     { "id": "F03.2", "critere": "Seul l'organisateur de l'événement (ou un admin) peut le supprimer.", "couche": "back", "statut": "livre", "version": "1.1.0" },
     { "id": "F03.3", "critere": "L'événement supprimé n'apparaît plus dans la liste ; sa fiche renvoie « introuvable ».", "couche": "back", "statut": "livre", "version": "1.1.0" },
-    { "id": "F03.4", "critere": "Les inscriptions liées à l'événement sont supprimées aussi.", "couche": "back", "statut": "sprint3" },
+    { "id": "F03.4", "critere": "Les inscriptions liées à l'événement sont supprimées aussi.", "couche": "back", "statut": "livre", "version": "1.2.0" },
 
     { "id": "F04.1", "critere": "La liste affiche les événements à venir, triés par date croissante.", "couche": "back", "statut": "livre", "version": "1.1.0" },
     { "id": "F04.2", "critere": "Chaque événement montre au minimum son titre, sa date et son lieu.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
@@ -52,9 +52,9 @@
 
     { "id": "F06.1", "critere": "Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit.", "couche": "front", "statut": "sprint3" },
     { "id": "F06.2", "critere": "Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ».", "couche": "back+front", "statut": "sprint3" },
-    { "id": "F06.3", "critere": "Je ne peux pas m'inscrire deux fois au même événement.", "couche": "back", "statut": "sprint3" },
+    { "id": "F06.3", "critere": "Je ne peux pas m'inscrire deux fois au même événement.", "couche": "back", "statut": "livre", "version": "1.2.0" },
     { "id": "F06.4", "critere": "Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion.", "couche": "back+front", "statut": "sprint3" },
-    { "id": "F06.5", "critere": "On ne peut pas s'inscrire à un événement passé.", "couche": "back", "statut": "sprint3" },
+    { "id": "F06.5", "critere": "On ne peut pas s'inscrire à un événement passé.", "couche": "back", "statut": "livre", "version": "1.2.0" },
 
     { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "sprint3" },
     { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "sprint3" },
