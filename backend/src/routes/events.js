@@ -3,7 +3,7 @@ import { createEvent, deleteEvent, getEventOr404, listUpcomingEvents, toPublicEv
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireEventManager } from '../middleware/eventAccess.js';
 import { assertCanRegister } from '../permissions.js';
-import { createRegistration, toPublicRegistration } from '../registrations.js';
+import { createRegistration, deleteRegistration, toPublicRegistration } from '../registrations.js';
 import { parseEventInput, requireId } from '../validation.js';
 
 const router = Router();
@@ -43,6 +43,12 @@ router.post('/:id/registrations', requireAuth, async (req, res) => {
   assertCanRegister(req.user, event);
   const registration = await createRegistration(event.id, req.user.id);
   res.status(201).json(toPublicRegistration(registration));
+});
+
+router.delete('/:id/registrations/me', requireAuth, async (req, res) => {
+  const event = await getEventOr404(requireId(req.params.id));
+  await deleteRegistration(event.id, req.user.id);
+  res.status(204).end();
 });
 
 export default router;

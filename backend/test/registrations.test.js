@@ -30,6 +30,7 @@ const countRegistrations = (column, id) =>
   });
 
 const registerTo = (eventId, token) => api('POST', `/api/events/${eventId}/registrations`, { token });
+const unregisterFrom = (eventId, token) => api('DELETE', `/api/events/${eventId}/registrations/me`, { token });
 
 describe("Inscription à un événement (POST /api/events/:id/registrations)", () => {
   let organizer;
@@ -115,6 +116,84 @@ describe("Inscription à un événement (POST /api/events/:id/registrations)", (
 
   it('refuse un identifiant invalide (400)', async () => {
     assert.equal((await registerTo('abc', participant.token)).status, 400);
+  });
+});
+
+describe("Désinscription d'un événement (DELETE /api/events/:id/registrations/me)", () => {
+  let organizer;
+  let participant;
+  before(async () => {
+    organizer = await register('organizer');
+    participant = await register('participant');
+  });
+
+  it("désinscrit l'utilisateur connecté (204) et supprime son inscription [F07.2]", async () => {
+    const event = await createEvent(organizer);
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+
+    const res = await unregisterFrom(event.id, participant.token);
+    assert.equal(res.status, 204);
+    assert.equal(res.body, null);
+    assert.equal(await countRegistrations('event_id', event.id), 0);
+  });
+
+  it('libère la place : le participant peut se réinscrire [F07.3]', async () => {
+    const event = await createEvent(organizer);
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+    assert.equal((await unregisterFrom(event.id, participant.token)).status, 204);
+
+    const res = await registerTo(event.id, participant.token);
+    assert.equal(res.status, 201);
+    assert.equal(await countRegistrations('event_id', event.id), 1);
+  });
+
+  it("ne supprime que l'inscription de l'utilisateur connecté [F07.3]", async () => {
+    const event = await createEvent(organizer);
+    const other = await register('participant');
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+    assert.equal((await registerTo(event.id, other.token)).status, 201);
+
+    assert.equal((await unregisterFrom(event.id, participant.token)).status, 204);
+    assert.equal(await countRegistrations('event_id', event.id), 1);
+    assert.equal((await unregisterFrom(event.id, other.token)).status, 204);
+  });
+
+  it("renvoie 404 si l'utilisateur n'était pas inscrit", async () => {
+    const event = await createEvent(organizer);
+    for (const token of [participant.token, organizer.token]) {
+      const res = await unregisterFrom(event.id, token);
+      assert.equal(res.status, 404);
+      assert.equal(res.body.error, "Vous n'êtes pas inscrit à cet événement");
+    }
+  });
+
+  it('renvoie 404 à la seconde désinscription', async () => {
+    const event = await createEvent(organizer);
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+    assert.equal((await unregisterFrom(event.id, participant.token)).status, 204);
+
+    const res = await unregisterFrom(event.id, participant.token);
+    assert.equal(res.status, 404);
+    assert.equal(res.body.error, "Vous n'êtes pas inscrit à cet événement");
+  });
+
+  it("renvoie 404 si l'événement n'existe pas", async () => {
+    const res = await unregisterFrom(999999999, participant.token);
+    assert.equal(res.status, 404);
+    assert.equal(res.body.error, 'Événement introuvable');
+  });
+
+  it('exige un jeton valide (401) [F08b.1]', async () => {
+    const event = await createEvent(organizer);
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+
+    assert.equal((await unregisterFrom(event.id)).status, 401);
+    assert.equal((await unregisterFrom(event.id, 'faux.jeton.jwt')).status, 401);
+    assert.equal(await countRegistrations('event_id', event.id), 1);
+  });
+
+  it('refuse un identifiant invalide (400)', async () => {
+    assert.equal((await unregisterFrom('abc', participant.token)).status, 400);
   });
 });
 
