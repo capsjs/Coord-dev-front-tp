@@ -15,6 +15,7 @@ Un **ADR** (*Architecture Decision Record*) consigne une décision d'architectur
 | [0007](0007-conteneurisation-docker-compose.md) | Conteneurisation avec Docker Compose | Accepté | 2026-11-13 |
 | [0008](0008-contrat-api-openapi.md) | Contrat d'API OpenAPI comme source de vérité | Accepté | 2026-11-20 |
 | [0009](0009-strategie-de-tests-et-ci.md) | Tests d'intégration sur la vraie stack et CI GitHub Actions | Accepté | 2026-11-20 |
+| [0010](0010-securite-de-l-api.md) | Mesures de sécurité de l'API | Proposé | 2026-11-25 |
 
 ## Écrire un nouvel ADR
 
