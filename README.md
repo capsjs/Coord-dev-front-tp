@@ -6,13 +6,13 @@ Gestionnaire d'événements : API back-end (`backend/`) et interface web (`front
 | ------------- | ------------------------------------------------------------ |
 | `admin`       | Gère les comptes (liste, changement de rôle, suppression) et peut gérer tous les événements |
 | `organizer`   | Crée, modifie et supprime ses événements                     |
-| `participant` | Consulte les événements ; s'y inscrit *(Sprint 3)*           |
+| `participant` | Consulte les événements ; s'y inscrit et s'en désinscrit      |
 
 **Stack back** : Node.js 22 · Express 5 · MySQL 8.4 · JWT · OpenAPI 3 → [`backend/README.md`](backend/README.md)
 
 **Stack front** : React 19 · TypeScript · Vite · React Router → [`frontend/README.md`](frontend/README.md)
 
-> État actuel : **comptes, connexion et gestion des événements** (création, modification, suppression, liste, fiche). Inscriptions (Sprint 3, en cours) : l'API permet de s'inscrire à un événement et de s'en désinscrire ; l'interface arrive ensuite.
+> État actuel : **comptes, connexion, gestion des événements** (création, modification, suppression, liste, fiche) **et inscriptions** (s'inscrire et se désinscrire depuis la fiche d'un événement).
 
 ## Démarrage rapide
 

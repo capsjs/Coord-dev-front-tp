@@ -42,7 +42,7 @@
     { "id": "F04.4", "critere": "Un clic sur un événement ouvre sa fiche détaillée.", "couche": "front", "statut": "livre" },
 
     { "id": "F05.1", "critere": "La fiche affiche titre, description, date et heure, lieu et organisateur.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
-    { "id": "F05.2", "critere": "Un utilisateur connecté voit « S'inscrire » ou « Se désinscrire » selon qu'il est inscrit.", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F05.2", "critere": "Un utilisateur connecté voit « S'inscrire » ou « Se désinscrire » selon qu'il est inscrit.", "couche": "back+front", "statut": "livre", "version": "1.2.0" },
     { "id": "F05.3", "critere": "Un événement inexistant affiche une page « introuvable ».", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
 
     { "id": "F08b.1", "critere": "Une action réservée sans être connecté est refusée (401) et le front redirige vers la connexion.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
@@ -50,14 +50,14 @@
     { "id": "F08b.3", "critere": "Quand la session expire, l'utilisateur doit se reconnecter.", "couche": "back+front", "statut": "livre", "version": "1.1.0" },
     { "id": "F08b.4", "critere": "Les routes de l'API sont protégées de la même façon que l'interface.", "couche": "back", "statut": "livre", "version": "1.1.0" },
 
-    { "id": "F06.1", "critere": "Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit.", "couche": "front", "statut": "sprint3" },
-    { "id": "F06.2", "critere": "Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ».", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F06.1", "critere": "Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit.", "couche": "front", "statut": "livre" },
+    { "id": "F06.2", "critere": "Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ».", "couche": "back+front", "statut": "livre", "version": "1.2.0" },
     { "id": "F06.3", "critere": "Je ne peux pas m'inscrire deux fois au même événement.", "couche": "back", "statut": "livre", "version": "1.2.0" },
-    { "id": "F06.4", "critere": "Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion.", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F06.4", "critere": "Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion.", "couche": "back+front", "statut": "livre", "version": "1.2.0" },
     { "id": "F06.5", "critere": "On ne peut pas s'inscrire à un événement passé.", "couche": "back", "statut": "livre", "version": "1.2.0" },
 
-    { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "sprint3" },
-    { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "sprint3" },
+    { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "livre" },
+    { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "livre", "version": "1.2.0" },
     { "id": "F07.3", "critere": "Ma place est libérée pour les autres participants.", "couche": "back", "statut": "livre", "version": "1.2.0" },
 
     { "id": "CT.1", "critere": "Toute requête non conforme à openapi.yaml est refusée (400) avec un message clair.", "couche": "back", "statut": "livre", "version": "1.0.1" },
