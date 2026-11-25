@@ -77,8 +77,9 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
 | `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement (et ses inscriptions) |
 | `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir (pas de double inscription) |
+| `DELETE` | `/api/events/:id/registrations/me` | connecté | Se désinscrire d'un événement (404 si pas inscrit) |
 
-Les autres routes d'inscription (`DELETE /api/events/:id/registrations/me`, `GET /api/auth/me/registrations`) sont décrites dans le contrat mais pas encore codées (Sprint 3).
+La route `GET /api/auth/me/registrations` (mes inscriptions) est décrite dans le contrat mais pas encore codée (Sprint 3).
 
 Authentification : en-tête `Authorization: Bearer <token>`. Erreurs : `{ "error": "message" }`. Conventions complètes : [guide de style de l'API](../docs/guide-style-api.md).
 

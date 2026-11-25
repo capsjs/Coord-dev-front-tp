@@ -58,7 +58,7 @@
 
     { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "sprint3" },
     { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "sprint3" },
-    { "id": "F07.3", "critere": "Ma place est libérée pour les autres participants.", "couche": "back", "statut": "sprint3" },
+    { "id": "F07.3", "critere": "Ma place est libérée pour les autres participants.", "couche": "back", "statut": "livre", "version": "1.2.0" },
 
     { "id": "CT.1", "critere": "Toute requête non conforme à openapi.yaml est refusée (400) avec un message clair.", "couche": "back", "statut": "livre", "version": "1.0.1" },
     { "id": "CT.2", "critere": "Les réponses de l'API sont conformes à openapi.yaml (sinon 500 en dev et en CI).", "couche": "back", "statut": "livre", "version": "1.0.1" },

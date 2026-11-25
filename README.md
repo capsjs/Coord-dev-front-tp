@@ -12,7 +12,7 @@ Gestionnaire d'événements : API back-end (`backend/`) et interface web (`front
 
 **Stack front** : React 19 · TypeScript · Vite · React Router → [`frontend/README.md`](frontend/README.md)
 
-> État actuel : **comptes, connexion et gestion des événements** (création, modification, suppression, liste, fiche). Inscriptions (Sprint 3, en cours) : l'API permet de s'inscrire à un événement ; la désinscription et l'interface arrivent ensuite.
+> État actuel : **comptes, connexion et gestion des événements** (création, modification, suppression, liste, fiche). Inscriptions (Sprint 3, en cours) : l'API permet de s'inscrire à un événement et de s'en désinscrire ; l'interface arrive ensuite.
 
 ## Démarrage rapide
 
