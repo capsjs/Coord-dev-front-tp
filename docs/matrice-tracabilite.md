@@ -6,7 +6,7 @@
 
 Version courante du contrat d'API : **1.2.0**
 
-**41 exigences** · **55 tests reliés** (34 back, 21 front)
+**41 exigences** · **67 tests reliés** (34 back, 33 front)
 
 ## Synthèse de couverture
 
@@ -92,17 +92,17 @@ Les critères du Sprint 3 sont conservés comme non livrés.
 
 | Exigence | Critère | Couche | Tests | Version | Statut |
 |---|---|---|---|---|---|
-| **F06.1** | Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit. | front | — | — | Sprint 3 |
-| **F06.2** | Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ». | back+front | — | — | Sprint 3 |
-| **F06.3** | Je ne peux pas m'inscrire deux fois au même événement. | back | — | — | Sprint 3 |
-| **F06.4** | Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion. | back+front | — | — | Sprint 3 |
-| **F06.5** | On ne peut pas s'inscrire à un événement passé. | back | — | — | Sprint 3 |
+| **F06.1** | Le bouton « S'inscrire » est visible si je suis connecté et pas encore inscrit. | front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › RegistrationAction › propose de s'inscrire à un participant pas encore inscrit<br>**Front** : `frontend/tests/components/registrationStatus.test.ts` › getRegistrationStatus › renvoie not-registered pour un participant pas encore inscrit | — | Sprint 3 |
+| **F06.2** | Après inscription, une confirmation s'affiche et le bouton devient « Se désinscrire ». | back+front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur S'inscrire › inscrit le participant, confirme et change le bouton | — | Sprint 3 |
+| **F06.3** | Je ne peux pas m'inscrire deux fois au même événement. | back | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur S'inscrire › gère la double inscription (409) en affichant Se désinscrire<br>**Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur S'inscrire › désactive le bouton pendant l'envoi | — | Sprint 3 |
+| **F06.4** | Un visiteur non connecté qui clique sur « S'inscrire » est redirigé vers la connexion. | back+front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › RegistrationAction › envoie un visiteur vers la connexion<br>**Front** : `frontend/tests/components/registrationStatus.test.ts` › getRegistrationStatus › renvoie visitor si personne n'est connecté | — | Sprint 3 |
+| **F06.5** | On ne peut pas s'inscrire à un événement passé. | back | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › RegistrationAction › n'affiche aucun bouton pour un événement passé<br>**Front** : `frontend/tests/components/RegistrationAction.test.tsx` › clic sur S'inscrire › affiche le message de l'API si l'événement est passé (400)<br>**Front** : `frontend/tests/components/registrationStatus.test.ts` › getRegistrationStatus › renvoie past pour un événement passé, même pour un visiteur | — | Sprint 3 |
 
 ## F07 : Se désinscrire d'un événement (SCRUM-22)
 
 | Exigence | Critère | Couche | Tests | Version | Statut |
 |---|---|---|---|---|---|
-| **F07.1** | Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit. | front | — | — | Sprint 3 |
+| **F07.1** | Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit. | front | **Front** : `frontend/tests/components/RegistrationAction.test.tsx` › RegistrationAction › propose de se désinscrire à un participant déjà inscrit<br>**Front** : `frontend/tests/components/registrationStatus.test.ts` › getRegistrationStatus › renvoie registered pour un participant déjà inscrit | — | Sprint 3 |
 | **F07.2** | Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ». | back+front | — | — | Sprint 3 |
 | **F07.3** | Ma place est libérée pour les autres participants. | back | — | — | Sprint 3 |
 

@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
 import { RegistrationAction } from "../../src/components/RegistrationAction";
-import { getMyRegistrations } from "../../src/api/registrations";
+import { ApiError } from "../../src/api/client";
+import {
+  getMyRegistrations,
+  registerToEvent,
+} from "../../src/api/registrations";
 import { useAuth } from "../../src/auth/useAuth";
 
 import type { Event } from "../../src/types/event";
@@ -12,6 +17,7 @@ import type { User } from "../../src/types/user";
 // Simulation des appels API
 vi.mock("../../src/api/registrations", () => ({
   getMyRegistrations: vi.fn(),
+  registerToEvent: vi.fn(),
 }));
 
 // Simulation du système d'authentification
@@ -20,6 +26,7 @@ vi.mock("../../src/auth/useAuth", () => ({
 }));
 
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations);
+const mockedRegisterToEvent = vi.mocked(registerToEvent);
 const mockedUseAuth = vi.mocked(useAuth);
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -134,5 +141,83 @@ describe("RegistrationAction", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Session expirée : reconnectez-vous",
     );
+  });
+
+  describe("clic sur S'inscrire", () => {
+    beforeEach(() => {
+      mockUser(participant);
+    });
+
+    it("[F06.2] inscrit le participant, confirme et change le bouton", async () => {
+      mockedRegisterToEvent.mockResolvedValue({
+        eventId: 1,
+        userId: 3,
+        createdAt: new Date().toISOString(),
+      });
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(mockedRegisterToEvent).toHaveBeenCalledWith(1);
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Inscription confirmée.",
+      );
+      expect(
+        screen.getByRole("button", { name: "Se désinscrire" }),
+      ).toBeInTheDocument();
+    });
+
+    it("[F06.3] gère la double inscription (409) en affichant Se désinscrire", async () => {
+      mockedRegisterToEvent.mockRejectedValue(
+        new ApiError(409, "Vous êtes déjà inscrit à cet événement"),
+      );
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Vous êtes déjà inscrit à cet événement",
+      );
+      expect(
+        screen.getByRole("button", { name: "Se désinscrire" }),
+      ).toBeInTheDocument();
+    });
+
+    it("[F06.5] affiche le message de l'API si l'événement est passé (400)", async () => {
+      mockedRegisterToEvent.mockRejectedValue(
+        new ApiError(400, "Cet événement est déjà passé"),
+      );
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Cet événement est déjà passé",
+      );
+      expect(
+        screen.getByRole("button", { name: "S'inscrire" }),
+      ).toBeEnabled();
+    });
+
+    it("[F06.3] désactive le bouton pendant l'envoi", async () => {
+      // Promesse jamais résolue : la requête reste « en cours »
+      mockedRegisterToEvent.mockReturnValue(new Promise(() => {}));
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Inscription..." }),
+      ).toBeDisabled();
+      expect(mockedRegisterToEvent).toHaveBeenCalledTimes(1);
+    });
   });
 });

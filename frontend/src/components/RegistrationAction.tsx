@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { getMyRegistrations } from "../api/registrations";
+import { ApiError } from "../api/client";
+import { getMyRegistrations, registerToEvent } from "../api/registrations";
 import { useAuth } from "../auth/useAuth";
 import type { Event } from "../types/event";
 import { getRegistrationStatus } from "./registrationStatus";
@@ -17,6 +18,9 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
   const [isRegistered, setIsRegistered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const isParticipant = user?.role === "participant";
 
@@ -43,6 +47,31 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
 
     loadRegistrations();
   }, [isParticipant, event.id]);
+
+  async function handleRegister() {
+    // Évite d'envoyer deux requêtes sur un double clic
+    if (submitting) return;
+
+    try {
+      setSubmitting(true);
+      setMessage(null);
+      setActionError(null);
+
+      await registerToEvent(event.id);
+      setIsRegistered(true);
+      setMessage("Inscription confirmée.");
+    } catch (err) {
+      // 409 : déjà inscrit (autre onglet par exemple), on aligne le bouton
+      if (err instanceof ApiError && err.status === 409) {
+        setIsRegistered(true);
+      }
+      setActionError(
+        err instanceof Error ? err.message : "Impossible de vous inscrire.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return <p>Vérification de votre inscription...</p>;
@@ -77,13 +106,43 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
           <button type="button" className="button-secondary">
             Se désinscrire
           </button>
+          <ActionFeedback message={message} error={actionError} />
         </div>
       );
 
     case "not-registered":
-      return <button type="button">S'inscrire</button>;
+      return (
+        <div className="event-registration">
+          <button type="button" onClick={handleRegister} disabled={submitting}>
+            {submitting ? "Inscription..." : "S'inscrire"}
+          </button>
+          <ActionFeedback message={message} error={actionError} />
+        </div>
+      );
 
     case "not-allowed":
       return null;
   }
+}
+
+interface ActionFeedbackProps {
+  message: string | null;
+  error: string | null;
+}
+
+// Retour affiché sous le bouton après une action
+function ActionFeedback({ message, error }: ActionFeedbackProps) {
+  if (error) {
+    return (
+      <p className="error" role="alert">
+        {error}
+      </p>
+    );
+  }
+
+  if (message) {
+    return <p role="status">{message}</p>;
+  }
+
+  return null;
 }
