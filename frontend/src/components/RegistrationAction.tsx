@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { ApiError } from "../api/client";
-import { getMyRegistrations, registerToEvent } from "../api/registrations";
+import {
+  getMyRegistrations,
+  registerToEvent,
+  unregisterFromEvent,
+} from "../api/registrations";
 import { useAuth } from "../auth/useAuth";
 import type { Event } from "../types/event";
 import { getRegistrationStatus } from "./registrationStatus";
@@ -73,6 +77,30 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
     }
   }
 
+  async function handleUnregister() {
+    if (submitting) return;
+
+    try {
+      setSubmitting(true);
+      setMessage(null);
+      setActionError(null);
+
+      await unregisterFromEvent(event.id);
+      setIsRegistered(false);
+      setMessage("Désinscription confirmée.");
+    } catch (err) {
+      // 404 : déjà désinscrit (autre onglet par exemple), on aligne le bouton
+      if (err instanceof ApiError && err.status === 404) {
+        setIsRegistered(false);
+      }
+      setActionError(
+        err instanceof Error ? err.message : "Impossible de vous désinscrire.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loading) {
     return <p>Vérification de votre inscription...</p>;
   }
@@ -103,8 +131,13 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
       return (
         <div className="event-registration">
           <p>Vous êtes inscrit à cet événement.</p>
-          <button type="button" className="button-secondary">
-            Se désinscrire
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={handleUnregister}
+            disabled={submitting}
+          >
+            {submitting ? "Désinscription..." : "Se désinscrire"}
           </button>
           <ActionFeedback message={message} error={actionError} />
         </div>

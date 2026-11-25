@@ -8,6 +8,7 @@ import { ApiError } from "../../src/api/client";
 import {
   getMyRegistrations,
   registerToEvent,
+  unregisterFromEvent,
 } from "../../src/api/registrations";
 import { useAuth } from "../../src/auth/useAuth";
 
@@ -18,6 +19,7 @@ import type { User } from "../../src/types/user";
 vi.mock("../../src/api/registrations", () => ({
   getMyRegistrations: vi.fn(),
   registerToEvent: vi.fn(),
+  unregisterFromEvent: vi.fn(),
 }));
 
 // Simulation du système d'authentification
@@ -27,6 +29,7 @@ vi.mock("../../src/auth/useAuth", () => ({
 
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations);
 const mockedRegisterToEvent = vi.mocked(registerToEvent);
+const mockedUnregisterFromEvent = vi.mocked(unregisterFromEvent);
 const mockedUseAuth = vi.mocked(useAuth);
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -218,6 +221,81 @@ describe("RegistrationAction", () => {
         screen.getByRole("button", { name: "Inscription..." }),
       ).toBeDisabled();
       expect(mockedRegisterToEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("clic sur Se désinscrire", () => {
+    beforeEach(() => {
+      mockUser(participant);
+      // Le participant est déjà inscrit à l'événement affiché
+      mockedGetMyRegistrations.mockResolvedValue([mockEvent]);
+    });
+
+    it("[F07.2] désinscrit le participant, confirme et remet S'inscrire", async () => {
+      mockedUnregisterFromEvent.mockResolvedValue(undefined);
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Se désinscrire" }),
+      );
+
+      expect(mockedUnregisterFromEvent).toHaveBeenCalledWith(1);
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Désinscription confirmée.",
+      );
+      expect(
+        screen.getByRole("button", { name: "S'inscrire" }),
+      ).toBeInTheDocument();
+    });
+
+    it("[F07.2] remet S'inscrire si l'utilisateur n'était plus inscrit (404)", async () => {
+      mockedUnregisterFromEvent.mockRejectedValue(
+        new ApiError(404, "Vous n'êtes pas inscrit à cet événement"),
+      );
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Se désinscrire" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Vous n'êtes pas inscrit à cet événement",
+      );
+      expect(
+        screen.getByRole("button", { name: "S'inscrire" }),
+      ).toBeInTheDocument();
+    });
+
+    it("garde le bouton Se désinscrire si une autre erreur survient", async () => {
+      mockedUnregisterFromEvent.mockRejectedValue(
+        new ApiError(500, "Erreur interne du serveur"),
+      );
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Se désinscrire" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Erreur interne du serveur",
+      );
+      expect(
+        screen.getByRole("button", { name: "Se désinscrire" }),
+      ).toBeEnabled();
+    });
+
+    it("désactive le bouton pendant l'envoi", async () => {
+      mockedUnregisterFromEvent.mockReturnValue(new Promise(() => {}));
+
+      renderAction();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Se désinscrire" }),
+      );
+
+      expect(
+        screen.getByRole("button", { name: "Désinscription..." }),
+      ).toBeDisabled();
+      expect(mockedUnregisterFromEvent).toHaveBeenCalledTimes(1);
     });
   });
 });
