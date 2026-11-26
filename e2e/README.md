@@ -1,26 +1,32 @@
 # Coord Events : scénarios Gherkin
 
-Les critères d'acceptation des user stories, écrits en **Gherkin** (en français) et exécutés avec **Playwright** via [`playwright-bdd`](https://github.com/vitalets/playwright-bdd) (SCRUM-74).
+Les critères d'acceptation des user stories, écrits en **Gherkin** (en français) et exécutés avec **Playwright** via [`playwright-bdd`](https://github.com/vitalets/playwright-bdd) (SCRUM-74), à deux niveaux :
 
-- **Niveau API** (`features/api/`) : chaque étape appelle l'API en HTTP. En place.
-- **Niveau front** (`features/front/`, navigateur) : à venir.
+| Niveau | Dossier | Ce qui est vérifié |
+| ------ | ------- | ------------------ |
+| **API** | `features/api/` | les règles métier, en appelant l'API en HTTP (codes, messages, données) |
+| **Interface** | `features/front/` | ce que voit et fait l'utilisateur dans Chromium : redirections, boutons affichés ou masqués, confirmations, messages |
 
 ## Lancer
 
 L'API doit tourner (`make up` à la racine).
 
 ```bash
-make bdd                 # depuis la racine
-# ou
-cd e2e && npm ci && npm run test:api
+make bdd                 # les deux niveaux (installe Chromium et les dépendances si besoin)
+make bdd-api             # niveau API seulement, sans navigateur
+# ou, depuis e2e/ :
+npm test                 # les deux niveaux
+npx playwright test --project=front --headed   # voir le navigateur pendant les scénarios
 ```
 
-Ils tournent aussi en CI, dans le job *Build et tests d'intégration* de **CI Back**. En cas d'échec, le rapport Playwright est publié en artefact (`scenarios-gherkin`).
+Pour le niveau interface, Playwright **démarre lui-même le front** (serveur Vite sur le port 5173, déjà autorisé par le CORS de l'API) ou réutilise celui qui tourne (`npm run dev` dans `frontend/`).
+
+En CI, le workflow **Scénarios Gherkin** les lance à chaque modification du back, du front ou des scénarios, et affiche un résumé par fonctionnalité sur la page du workflow. En cas d'échec, le rapport Playwright (avec captures d'écran) est publié en artefact (`scenarios-gherkin`).
 
 ## Écrire un scénario
 
 1. Repérer le critère dans [`docs/exigences.json`](../docs/exigences.json) (ex. `F06.3` : « Je ne peux pas m'inscrire deux fois »).
-2. L'écrire dans le fichier `.feature` de la story, **tagué avec l'exigence** : il apparaîtra dans la [matrice de traçabilité](../docs/matrice-tracabilite.md) (`cd backend && npm run matrix`).
+2. L'écrire dans le fichier `.feature` concerné, **tagué avec l'exigence** : il apparaîtra dans la [matrice de traçabilité](../docs/matrice-tracabilite.md) (`cd backend && npm run matrix`). Un scénario du niveau interface compte comme un test front.
 
 ```gherkin
   @F06.3
@@ -32,19 +38,25 @@ Ils tournent aussi en CI, dans le job *Build et tests d'intégration* de **CI Ba
     Et le message d'erreur est "Vous êtes déjà inscrit à cet événement"
 ```
 
-3. Réutiliser les phrases existantes ([`steps/api/steps.js`](steps/api/steps.js)) ; une nouvelle phrase demande une nouvelle étape dans ce fichier.
+3. Réutiliser les phrases existantes ([`steps/api/steps.js`](steps/api/steps.js), [`steps/front/steps.js`](steps/front/steps.js)) ; une nouvelle phrase demande une nouvelle étape.
 
-**Acteurs** : `organisateur`, `autre organisateur`, `participant`, `administrateur` (connectés via « Soit un … connecté ») et `visiteur` (non connecté). Chaque scénario crée ses propres comptes et événements : ils sont indépendants et tournent en parallèle.
+**Acteurs** : `organisateur`, `autre organisateur`, `participant`, `administrateur` (API) et `visiteur` (non connecté). Niveau API : « Soit un … connecté ». Niveau interface : « Soit un … existant », puis « Et le … est connecté dans le navigateur ». Chaque scénario crée ses propres comptes et événements (titres uniques) : ils sont indépendants et tournent en parallèle.
 
-**Tableau d'événement** (`… crée un événement avec :` / `… modifie l'événement avec :`) : champs `titre`, `description`, `date` (`dans 30 jours`, `hier`, ou une valeur brute), `lieu`, `prix`, `devise`.
+**Niveau interface** : les données de départ sont préparées par l'API ; les éléments sont repérés par ce que voit l'utilisateur (libellés, textes des boutons, titres), sans dépendre du code du front.
+
+**Tableau d'événement** : champs `titre`, `description`, `date` (`dans 30 jours`, `hier`, ou une valeur brute), `lieu`, `prix`, `devise`.
 
 ## Structure
 
 ```
 e2e/
-├── playwright.config.js     # projets Playwright (api ; front à venir)
-├── features/api/*.feature   # un fichier par story (F01, F02…)
-└── steps/
-    ├── fixtures.js          # état partagé entre les étapes d'un scénario
-    └── api/                 # étapes du niveau API + outils (appels HTTP, base)
+├── playwright.config.js     # projets « api » et « front » ; démarrage du front pour « front »
+├── features/
+│   ├── api/*.feature        # un fichier par story (F01, F02…)
+│   └── front/*.feature      # connexion, événements, inscriptions dans l'interface
+├── steps/
+│   ├── fixtures.js          # état partagé entre les étapes d'un scénario, client HTTP vers l'API
+│   ├── api/                 # étapes du niveau API + outils (appels HTTP, base)
+│   └── front/               # étapes du niveau interface
+└── scripts/resume-ci.js     # résumé affiché sur la page du workflow
 ```

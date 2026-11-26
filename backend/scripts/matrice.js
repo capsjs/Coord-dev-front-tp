@@ -88,7 +88,8 @@ function taggedTests() {
 }
 
 // Scénarios Gherkin (SCRUM-74) : e2e/features/**/*.feature, tags « @F01.3 » au-dessus d'un scénario.
-// Ils sont listés dans la matrice mais ne changent pas le statut (calculé sur les tests back et front).
+// Niveau « interface » (e2e/features/front) : compte comme un test front pour le statut.
+// Niveau « API » (e2e/features/api) : listé dans la matrice, sans changer le statut.
 const SCENARIO_RE = /^\s*(Scénario|Plan du scénario|Scenario|Scenario Outline)\s*:\s*(.+)$/i;
 const FEATURE_RE = /^\s*(Fonctionnalité|Feature)\s*:\s*(.+)$/i;
 const GHERKIN_TAG_RE = /@([A-Za-z]+\d*[a-z]?\.\d+)\b/g;
@@ -112,7 +113,8 @@ function gherkinScenarios() {
       const scenarioMatch = line.match(SCENARIO_RE);
       if (scenarioMatch) {
         if (pending.length) {
-          scenarios.push({ file, layer: "gherkin", suite: feature, title: scenarioMatch[2].trim(), tags: [...new Set(pending)] });
+          const niveau = file.includes("/features/front/") ? "front" : "api";
+          scenarios.push({ file, layer: "gherkin", niveau, suite: feature, title: scenarioMatch[2].trim(), tags: [...new Set(pending)] });
         }
         pending = [];
       }
@@ -136,7 +138,9 @@ function statutDe(exigence, linked) {
   if (exigence.statut === "sprint3") return "sprint3";
 
   const hasBack = linked.some((test) => test.layer === "back");
-  const hasFront = linked.some((test) => test.layer === "front");
+  const hasFront = linked.some(
+    (test) => test.layer === "front" || (test.layer === "gherkin" && test.niveau === "front"),
+  );
 
   if (exigence.couche === "back") {
     return hasBack ? "back" : "manquant";
@@ -160,7 +164,10 @@ function escapeCell(value) {
 }
 
 function formatTest(test) {
-  const layer = { back: "Back", front: "Front", gherkin: "Gherkin" }[test.layer];
+  const layer =
+    test.layer === "gherkin"
+      ? `Gherkin (${test.niveau === "front" ? "interface" : "API"})`
+      : { back: "Back", front: "Front" }[test.layer];
 
   const suite = test.suite ? `${escapeCell(test.suite)} › ` : "";
 

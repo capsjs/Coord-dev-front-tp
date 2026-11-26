@@ -1,0 +1,82 @@
+name: Scénarios Gherkin
+
+# Les critères d'acceptation des stories, écrits en Gherkin (e2e/features) et exécutés avec Playwright (SCRUM-74) :
+# - niveau API   : appels HTTP à l'API ;
+# - niveau front : l'interface dans Chromium (front démarré par Playwright avec le serveur Vite).
+# Déclenché par toute modification du back, du front ou des scénarios.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'e2e/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/scenarios.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'e2e/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/scenarios.yml'
+
+concurrency:
+  group: scenarios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scenarios:
+    name: Scénarios (API et interface)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            e2e/package-lock.json
+            frontend/package-lock.json
+
+      - name: Dépendances (scénarios et front)
+        run: |
+          npm ci --prefix e2e
+          npm ci --prefix frontend
+
+      - name: Navigateur Chromium
+        run: npx --prefix e2e playwright install --with-deps chromium
+
+      # MySQL + l'API seulement : le front est démarré par Playwright (serveur Vite).
+      - name: Démarrage de MySQL et de l'API
+        run: |
+          docker compose up -d --build db backend
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health >/dev/null && break; sleep 1; done
+          curl -sf http://localhost:3000/api/health
+
+      - name: Scénarios Gherkin
+        run: make bdd
+
+      # Tableau « réussis / échoués » par fonctionnalité, affiché sur la page du workflow.
+      - name: Résumé des scénarios
+        if: always()
+        working-directory: e2e
+        run: node scripts/resume-ci.js >> "$GITHUB_STEP_SUMMARY"
+
+      # Rapport détaillé (scénario, étape, attendu / reçu, capture d'écran) : seulement en cas d'échec.
+      - name: Rapport des scénarios
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scenarios-gherkin
+          path: e2e/playwright-report/
+          if-no-files-found: ignore
+
+      - name: Logs en cas d'échec
+        if: failure()
+        run: docker compose logs
+
+      - name: Arrêt de la stack
+        if: always()
+        run: docker compose down -v

@@ -71,7 +71,7 @@ Tapez `make` seul pour afficher la liste.
 | `make docs`    | Ouvre le Swagger dans le navigateur                            |
 | `make test`    | Lance les tests du back (l'API doit tourner)                   |
 | `make coverage` | Tests + mesure de la couverture du back (rapport HTML dans `backend/coverage/report/`) |
-| `make bdd`     | Scénarios Gherkin (critères d'acceptation) contre l'API (l'API doit tourner) |
+| `make bdd`     | Scénarios Gherkin, niveau API et interface (l'API doit tourner) ; `make bdd-api` pour l'API seule |
 | `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
 | `make db`      | Ouvre la console MySQL                                         |
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
@@ -85,7 +85,8 @@ Chaque PR déclenche les workflows concernés par les fichiers modifiés (dossie
 
 | Workflow | Déclenché par | Vérifie |
 | -------- | ------------- | ------- |
-| **CI Back** | `backend/`, `e2e/`, `docker-compose.yml`, `Makefile`, exigences | compose valide, lint, tests unitaires, matrice de traçabilité, build Docker, tests d'intégration, couverture, scénarios Gherkin |
+| **CI Back** | `backend/`, `docker-compose.yml`, `Makefile`, exigences, scénarios | compose valide, lint, tests unitaires, matrice de traçabilité, build Docker, tests d'intégration, couverture |
+| **Scénarios Gherkin** | `backend/`, `frontend/`, `e2e/`, `docker-compose.yml` | critères d'acceptation exécutés au niveau API et dans l'interface (Chromium) ; résumé par fonctionnalité |
 | **CI Front** | `frontend/`, `docker-compose.yml`, `Makefile` | lint, tests et couverture, build, image Docker |
 | **CI Contrat d'API** | `backend/openapi.yaml` | Spectral, changements cassants (oasdiff) |
 | **Documentation de l'API** | `backend/openapi.yaml` | génère la doc Swagger ; la publie sur GitHub Pages après merge sur `main` |
