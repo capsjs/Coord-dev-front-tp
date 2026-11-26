@@ -38,7 +38,7 @@
 | **Unitaire** | Fonctions pures sans base ni réseau : validation, droits, erreurs (Back) ; formatage, conversion de dates, hooks (Front) | ✅ 47 tests (`backend/test/unit/`) | ❌ aucun | La majorité des tests ; chaque règle métier a ses cas limites |
 | **Intégration** | Back : l'API démarrée avec MySQL, appelée en HTTP. Front : une page ou un composant avec l'API simulée | ✅ 50 tests (`backend/test/*.test.js`) | ❌ aucun | Chaque route : cas nominal + chaque code d'erreur du contrat. Chaque page : chargement, erreur, vide, données |
 | **Contrat** | Les requêtes et les réponses respectent `openapi.yaml` | ✅ validateur dans l'API (requêtes toujours, réponses en dev et CI), Spectral, oasdiff | — | Toute route du contrat couverte ; aucun écart toléré |
-| **Fonctionnel / e2e** | Un parcours utilisateur complet dans le navigateur, Front + Back + base | ❌ | ❌ | Quelques scénarios clés : créer un événement, s'inscrire, se désinscrire (SCRUM-74, SCRUM-24) |
+| **Fonctionnel / e2e** | Les critères d'acceptation écrits en Gherkin et exécutés : au niveau API, et dans le navigateur (Front + Back + base) | ✅ 36 scénarios Gherkin au niveau API (`e2e/features/api`) | ✅ 17 scénarios Gherkin dans l'interface (`e2e/features/front`, Chromium) | Parcours complet enchaîné de bout en bout (SCRUM-24) |
 
 Les critères d'interface (boutons, redirections, messages) sont aujourd'hui **vérifiés à la main** lors de la revue de PR), en attendant les tests Front.
 
@@ -55,7 +55,7 @@ Les critères d'interface (boutons, redirections, messages) sont aujourd'hui **v
 | Traçabilité exigence → test | script maison | `docs/exigences.json` | `cd backend && npm run matrix` |
 | Lint | ESLint (Back), oxlint (Front) | — | `make lint` · `cd frontend && npm run lint` |
 | Tests Front *(à confirmer par l'équipe Front)* | Vitest + Testing Library + MSW (API simulée) | `frontend/` | à définir |
-| Scénarios Gherkin / e2e *(à confirmer)* | Cucumber ou Playwright | à définir | à définir |
+| Scénarios Gherkin | Playwright + `playwright-bdd`, Gherkin en français ; niveau API et interface (Chromium) | `e2e/` | `make bdd` (API démarrée) |
 
 ## 5. Environnements et données de test
 

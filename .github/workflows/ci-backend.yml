@@ -10,6 +10,7 @@ on:
       - '.github/workflows/ci-backend.yml'
       - 'docs/exigences.json'
       - 'docs/matrice-tracabilite.md'
+      - 'e2e/**' # la matrice lit les tags des scénarios Gherkin
   pull_request:
     paths:
       - 'backend/**'
@@ -18,6 +19,7 @@ on:
       - '.github/workflows/ci-backend.yml'
       - 'docs/exigences.json'
       - 'docs/matrice-tracabilite.md'
+      - 'e2e/**'
 
 concurrency:
   group: ci-backend-${{ github.ref }}

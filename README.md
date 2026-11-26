@@ -71,6 +71,7 @@ Tapez `make` seul pour afficher la liste.
 | `make docs`    | Ouvre le Swagger dans le navigateur                            |
 | `make test`    | Lance les tests du back (l'API doit tourner)                   |
 | `make coverage` | Tests + mesure de la couverture du back (rapport HTML dans `backend/coverage/report/`) |
+| `make bdd`     | Scénarios Gherkin, niveau API et interface (l'API doit tourner) ; `make bdd-api` pour l'API seule |
 | `make lint`    | Vérifie le code du back (ESLint) et le contrat d'API (Spectral) |
 | `make db`      | Ouvre la console MySQL                                         |
 | `make shell`   | Ouvre un shell dans le conteneur de l'API                      |
@@ -84,7 +85,8 @@ Chaque PR déclenche les workflows concernés par les fichiers modifiés (dossie
 
 | Workflow | Déclenché par | Vérifie |
 | -------- | ------------- | ------- |
-| **CI Back** | `backend/`, `docker-compose.yml`, `Makefile`, exigences | compose valide, lint, tests unitaires, matrice de traçabilité, build Docker, tests d'intégration, couverture |
+| **CI Back** | `backend/`, `docker-compose.yml`, `Makefile`, exigences, scénarios | compose valide, lint, tests unitaires, matrice de traçabilité, build Docker, tests d'intégration, couverture |
+| **Scénarios Gherkin** | `backend/`, `frontend/`, `e2e/`, `docker-compose.yml` | critères d'acceptation exécutés au niveau API et dans l'interface (Chromium) ; résumé par fonctionnalité |
 | **CI Front** | `frontend/`, `docker-compose.yml`, `Makefile` | lint, tests et couverture, build, image Docker |
 | **CI Contrat d'API** | `backend/openapi.yaml` | Spectral, changements cassants (oasdiff) |
 | **Documentation de l'API** | `backend/openapi.yaml` | génère la doc Swagger ; la publie sur GitHub Pages après merge sur `main` |
@@ -97,6 +99,7 @@ Le hook pre-commit (`make hooks`) fait une partie de ces vérifications avant m�
 | -------- | ------- |
 | [`backend/README.md`](backend/README.md) | API : variables d'environnement, routes, contrat, tests, structure |
 | [`frontend/README.md`](frontend/README.md) | Interface : pages, authentification, structure |
+| [`e2e/README.md`](e2e/README.md) | Scénarios Gherkin (critères d'acceptation exécutables) : lancer, écrire un scénario |
 | [`docs/guide-style-api.md`](docs/guide-style-api.md) | Conventions de l'API : nommage, codes HTTP, erreurs, pagination |
 | [`docs/adr/`](docs/adr/README.md) | Décisions d'architecture et leurs raisons |
 | [`docs/plan-de-test.md`](docs/plan-de-test.md) | Stratégie de test : pyramide, outils, responsabilités |
@@ -108,6 +111,7 @@ Le hook pre-commit (`make hooks`) fait une partie de ces vérifications avant m�
 ```
 backend/                    # API Express (voir backend/README.md)
 frontend/                   # interface React (voir frontend/README.md)
+e2e/                        # scénarios Gherkin exécutés avec Playwright (voir e2e/README.md)
 docs/                       # ADR, guide de style de l'API, plan de test, Definition of Done, matrice de traçabilité
 .github/workflows/          # CI Back, CI Front, CI Contrat d'API, publication de la doc
 .githooks/                  # hook pre-commit de l'équipe (make hooks)

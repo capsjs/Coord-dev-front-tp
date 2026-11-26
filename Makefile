@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage bdd bdd-api shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -85,6 +85,18 @@ coverage: ## Mesure la couverture du back (tests d'intégration + unitaires) →
 	@echo "Rapport HTML : backend/coverage/report/index.html"
 	@# Relance l'API normalement (sans mesure de couverture).
 	$(COMPOSE) up -d backend >/dev/null
+
+bdd: ## Scénarios Gherkin, niveau API et interface (l'API doit tourner : make up)
+	@test -d e2e/node_modules || (cd e2e && npm ci)
+	@test -d frontend/node_modules || (cd frontend && npm ci)
+	@cd e2e && npx playwright install chromium >/dev/null
+	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
+	cd e2e && API_URL=$(API_URL) npm test
+
+bdd-api: ## Scénarios Gherkin, niveau API seulement (sans navigateur)
+	@test -d e2e/node_modules || (cd e2e && npm ci)
+	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
+	cd e2e && API_URL=$(API_URL) npm run test:api
 
 lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)
