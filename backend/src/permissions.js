@@ -17,6 +17,12 @@ export function assertCanManageEvent(user, event) {
   }
 }
 
+export function assertCanViewRegistrations(user, event) {
+  if (!canManageEvent(user, event)) {
+    throw forbidden("Seul l'organisateur de l'événement peut voir la liste des participants");
+  }
+}
+
 export function assertCanRegister(user, event, now = new Date()) {
   if (user?.role !== 'participant') {
     throw forbidden("Seuls les participants peuvent s'inscrire à un événement");

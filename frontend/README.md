@@ -4,7 +4,7 @@ Interface web du gestionnaire d'événements Coord Events, branchée sur l'API d
 
 **Stack** : React 19 · TypeScript (strict) · Vite · React Router
 
-> État actuel : **comptes et session, événements** (liste, fiche, création, modification, suppression) **et inscriptions** (S'inscrire / Se désinscrire sur la fiche), branchés sur l'API.
+> État actuel : **comptes et session, événements** (liste, fiche, création, modification, suppression) **et inscriptions** (S'inscrire / Se désinscrire sur la fiche, liste des participants pour l'organisateur), branchés sur l'API.
 
 ## Démarrage rapide
 
@@ -63,7 +63,7 @@ Créés par le back au premier démarrage (voir le README racine).
 | `/register`   | public    | Créer un compte (participant ou organisateur) |
 | `/login`      | public    | Se connecter                               |
 | `/events`     | public    | Liste des événements à venir               |
-| `/events/:id` | public    | Détail d'un événement, bouton S'inscrire / Se désinscrire |
+| `/events/:id` | public    | Détail d'un événement, bouton S'inscrire / Se désinscrire ; liste des participants pour l'organisateur et l'admin |
 | `/profile`    | connecté  | Mon profil                                 |
 | `*`           | public    | Page introuvable                           |
 

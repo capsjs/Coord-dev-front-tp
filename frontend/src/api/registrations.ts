@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 import type { Event } from "../types/event";
-import type { Registration } from "../types/registration";
+import type { EventRegistration, Registration } from "../types/registration";
 
 // S'inscrire à un événement (l'API identifie l'utilisateur grâce au token)
 export async function registerToEvent(eventId: number): Promise<Registration> {
@@ -19,4 +19,10 @@ export async function unregisterFromEvent(eventId: number): Promise<void> {
 // Lister les événements auxquels je suis inscrit
 export async function getMyRegistrations(): Promise<Event[]> {
   return apiFetch<Event[]>("/auth/me/registrations");
+}
+
+export async function getEventRegistrations(
+  eventId: number,
+): Promise<EventRegistration[]> {
+  return apiFetch<EventRegistration[]>(`/events/${eventId}/registrations`);
 }

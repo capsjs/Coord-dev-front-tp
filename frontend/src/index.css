@@ -565,3 +565,36 @@ textarea {
     transform: none;
   }
 }
+
+.event-participants {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.event-participants-count {
+  color: var(--muted);
+}
+
+.event-participants-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-participants-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.event-participants-list a {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}

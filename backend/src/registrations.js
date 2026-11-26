@@ -7,6 +7,22 @@ export const toPublicRegistration = (r) => ({
   createdAt: r.created_at,
 });
 
+export const toPublicEventRegistration = (r) => ({
+  ...toPublicRegistration(r),
+  user: { id: r.user_id, name: r.user_name, email: r.user_email },
+});
+
+export async function listEventRegistrations(eventId) {
+  return query(
+    `SELECT r.*, u.name AS user_name, u.email AS user_email
+     FROM registrations r
+     JOIN users u ON u.id = r.user_id
+     WHERE r.event_id = ?
+     ORDER BY r.created_at ASC, r.user_id ASC`,
+    [eventId],
+  );
+}
+
 export async function createRegistration(eventId, userId) {
   try {
     await query('INSERT INTO registrations (event_id, user_id) VALUES (?, ?)', [eventId, userId]);

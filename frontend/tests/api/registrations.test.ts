@@ -4,12 +4,16 @@ import {
   registerToEvent,
   unregisterFromEvent,
   getMyRegistrations,
+  getEventRegistrations,
 } from "../../src/api/registrations";
 
 import { apiFetch, ApiError } from "../../src/api/client";
 
 import type { Event } from "../../src/types/event";
-import type { Registration } from "../../src/types/registration";
+import type {
+  EventRegistration,
+  Registration,
+} from "../../src/types/registration";
 
 // Simulation du client HTTP centralisé
 vi.mock("../../src/api/client", () => ({
@@ -68,10 +72,9 @@ describe("API Inscriptions", () => {
 
     const result = await unregisterFromEvent(1);
 
-    expect(mockedApiFetch).toHaveBeenCalledWith(
-      "/events/1/registrations/me",
-      { method: "DELETE" },
-    );
+    expect(mockedApiFetch).toHaveBeenCalledWith("/events/1/registrations/me", {
+      method: "DELETE",
+    });
     expect(result).toBeUndefined();
   });
 
@@ -82,6 +85,34 @@ describe("API Inscriptions", () => {
 
     expect(mockedApiFetch).toHaveBeenCalledWith("/auth/me/registrations");
     expect(result).toEqual([mockEvent]);
+  });
+
+  it("récupère les inscrits d'un événement avec leur nom et leur e-mail [F09.1]", async () => {
+    const eventRegistrations: EventRegistration[] = [
+      {
+        ...mockRegistration,
+        user: { id: 3, name: "Paula Participante", email: "paula@example.com" },
+      },
+    ];
+    mockedApiFetch.mockResolvedValue(eventRegistrations);
+
+    const result = await getEventRegistrations(1);
+
+    expect(mockedApiFetch).toHaveBeenCalledWith("/events/1/registrations");
+    expect(result).toEqual(eventRegistrations);
+  });
+
+  it("propage l'erreur 403 si l'utilisateur n'est pas l'organisateur [F09.2]", async () => {
+    mockedApiFetch.mockRejectedValue(
+      new ApiError(
+        403,
+        "Seul l'organisateur de l'événement peut voir la liste des participants",
+      ),
+    );
+
+    await expect(getEventRegistrations(1)).rejects.toMatchObject({
+      status: 403,
+    });
   });
 
   it("propage l'erreur 409 en cas de double inscription [F06]", async () => {
