@@ -80,6 +80,16 @@ export function optionalCurrency(value, field = 'currency') {
   return value;
 }
 
+export const CAPACITY_MAX = 100000;
+
+export function optionalCapacity(value, field = 'capacity') {
+  if (value === undefined || value === null) return null;
+  if (!Number.isInteger(value) || value < 1 || value > CAPACITY_MAX) {
+    throw badRequest(`Le champ « ${field} » doit être un entier entre 1 et ${CAPACITY_MAX}`);
+  }
+  return value;
+}
+
 /** Valide le corps d'un EventInput (création et modification). */
 export function parseEventInput(body = {}) {
   return {
@@ -89,5 +99,6 @@ export function parseEventInput(body = {}) {
     location: requireString(body.location, 'location', { min: 2, max: 255 }),
     price: optionalPrice(body.price),
     currency: optionalCurrency(body.currency),
+    capacity: optionalCapacity(body.capacity),
   };
 }

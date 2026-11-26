@@ -598,3 +598,13 @@ textarea {
   color: var(--muted);
   overflow-wrap: anywhere;
 }
+
+.event-full {
+  display: inline-block;
+  margin: 0;
+  padding: 0.35rem 0.9rem;
+  font-weight: 700;
+  color: var(--error);
+  background: var(--error-bg);
+  border-radius: 999px;
+}

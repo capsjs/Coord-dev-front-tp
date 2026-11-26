@@ -5,4 +5,5 @@ export interface EventFormData {
   location: string;
   price: number;
   currency: string;
+  capacity: number | null;
 }

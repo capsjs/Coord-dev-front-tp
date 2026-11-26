@@ -24,6 +24,8 @@ const mockEvent: Event = {
   location: "Montpellier",
   price: 15,
   currency: "EUR",
+  capacity: null,
+  remainingSeats: null,
   organizerId: 2,
   organizer: {
     id: 2,
@@ -120,6 +122,7 @@ describe("EventFormPage", () => {
       location: "Montpellier",
       price: 15,
       currency: "EUR",
+      capacity: null,
     });
 
     // La navigation se fait après création réussie
@@ -237,6 +240,73 @@ describe("EventFormPage", () => {
         name: "Créer un événement",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("[F10.1] crée un événement avec une capacité maximale", async () => {
+    renderPage();
+    fillForm();
+
+    fireEvent.change(
+      screen.getByLabelText("Nombre maximum de participants (facultatif)"),
+      { target: { value: "50" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Créer l'événement" }));
+
+    await waitFor(() => {
+      expect(mockedCreateEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ capacity: 50 }),
+      );
+    });
+  });
+
+  it("[F10.1] préremplit la capacité et permet de la retirer", async () => {
+    mockedGetEventById.mockResolvedValue({
+      ...mockEvent,
+      capacity: 30,
+      remainingSeats: 10,
+    });
+
+    renderPage("/events/1/edit");
+
+    const capacityInput = await screen.findByLabelText(
+      "Nombre maximum de participants (facultatif)",
+    );
+    expect(capacityInput).toHaveValue(30);
+
+    fireEvent.change(capacityInput, { target: { value: "" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Enregistrer les modifications" }),
+    );
+
+    await waitFor(() => {
+      expect(mockedUpdateEvent).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ capacity: null }),
+      );
+    });
+  });
+
+  it("[F10.4] affiche le refus de l'API si la capacité est sous le nombre d'inscrits", async () => {
+    mockedUpdateEvent.mockRejectedValue(
+      new Error(
+        "La capacité ne peut pas être inférieure au nombre d'inscrits actuel (12)",
+      ),
+    );
+
+    renderPage("/events/1/edit");
+
+    fireEvent.change(
+      await screen.findByLabelText("Nombre maximum de participants (facultatif)"),
+      { target: { value: "5" } },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Enregistrer les modifications" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "La capacité ne peut pas être inférieure au nombre d'inscrits actuel (12)",
+    );
+    expect(screen.queryByText("Liste des événements")).not.toBeInTheDocument();
   });
 
   it("affiche une erreur si le chargement échoue", async () => {

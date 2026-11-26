@@ -20,7 +20,7 @@ npm install
 DB_PORT=3307 SEED_DEMO=true npm run dev
 ```
 
-Au démarrage, l'API attend MySQL, crée les tables manquantes (`src/schema.sql`), puis crée le compte admin et, si `SEED_DEMO=true`, les comptes de démo.
+Au démarrage, l'API attend MySQL, crée les tables manquantes (`src/schema.sql`) et ajoute les colonnes apparues depuis (liste `ADDED_COLUMNS` de `src/db.js`, pour ne pas avoir à vider la base), puis crée le compte admin et, si `SEED_DEMO=true`, les comptes de démo.
 
 ### Scripts npm
 
@@ -73,12 +73,12 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `PATCH`  | `/api/admin/users/:id`   | admin     | Changer le rôle d'un compte                   |
 | `DELETE` | `/api/admin/users/:id`   | admin     | Supprimer un compte                           |
 | `GET`    | `/api/events`            | public    | Événements à venir, du plus proche au plus lointain |
-| `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur compris)  |
-| `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
-| `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
+| `GET`    | `/api/events/:id`        | public    | Détail d'un événement (organisateur, capacité et places restantes compris) |
+| `POST`   | `/api/events`            | organizer, admin | Créer un événement (capacité maximale facultative) |
+| `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement (capacité jamais sous le nombre d'inscrits) |
 | `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement (et ses inscriptions) |
 | `GET`    | `/api/events/:id/registrations` | organisateur de l'événement, admin | Liste des inscrits (nom, e-mail), du plus ancien au plus récent |
-| `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir (pas de double inscription) |
+| `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir et non complet (pas de double inscription) |
 | `DELETE` | `/api/events/:id/registrations/me` | connecté | Se désinscrire d'un événement (404 si pas inscrit) |
 
 Authentification : en-tête `Authorization: Bearer <token>`. Erreurs : `{ "error": "message" }`. Conventions complètes : [guide de style de l'API](../docs/guide-style-api.md).
@@ -138,7 +138,7 @@ backend/
 │   ├── index.js            # démarrage : attente MySQL, migration, seed, serveur
 │   ├── app.js              # application Express (routes, validateur OpenAPI, Swagger, erreurs)
 │   ├── config.js           # configuration via variables d'environnement
-│   ├── db.js               # pool MySQL, migration
+│   ├── db.js               # pool MySQL, transactions, migration
 │   ├── schema.sql          # schéma de la base
 │   ├── seed.js             # compte admin + comptes de démo
 │   ├── users.js            # accès aux données utilisateurs

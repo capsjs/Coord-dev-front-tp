@@ -63,7 +63,7 @@ Créés par le back au premier démarrage (voir le README racine).
 | `/register`   | public    | Créer un compte (participant ou organisateur) |
 | `/login`      | public    | Se connecter                               |
 | `/events`     | public    | Liste des événements à venir               |
-| `/events/:id` | public    | Détail d'un événement, bouton S'inscrire / Se désinscrire ; liste des participants pour l'organisateur et l'admin |
+| `/events/:id` | public    | Détail d'un événement, places restantes, bouton S'inscrire / Se désinscrire (ou « Complet ») ; liste des participants pour l'organisateur et l'admin |
 | `/profile`    | connecté  | Mon profil                                 |
 | `*`           | public    | Page introuvable                           |
 

@@ -16,6 +16,8 @@ const futureEvent: Event = {
   location: "Montpellier",
   price: 15,
   currency: "EUR",
+  capacity: null,
+  remainingSeats: null,
   organizerId: 2,
   organizer: { id: 2, name: "Jean Dupont" },
 };
@@ -58,6 +60,19 @@ describe("getRegistrationStatus", () => {
 
   it("[F07.1] renvoie registered pour un participant déjà inscrit", () => {
     expect(getRegistrationStatus(participant, futureEvent, true)).toBe(
+      "registered",
+    );
+  });
+
+  it("[F10.3] renvoie full pour un participant ou un visiteur si l'événement est complet", () => {
+    const fullEvent = { ...futureEvent, capacity: 10, remainingSeats: 0 };
+    expect(getRegistrationStatus(participant, fullEvent, false)).toBe("full");
+    expect(getRegistrationStatus(null, fullEvent, false)).toBe("full");
+  });
+
+  it("renvoie registered pour un inscrit, même si l'événement est complet", () => {
+    const fullEvent = { ...futureEvent, capacity: 10, remainingSeats: 0 };
+    expect(getRegistrationStatus(participant, fullEvent, true)).toBe(
       "registered",
     );
   });

@@ -21,6 +21,8 @@ const event: Event = {
   location: "Paris",
   price: 0,
   currency: "EUR",
+  capacity: 20,
+  remainingSeats: 5,
   organizerId: 2,
   organizer: { id: 2, name: "Sacha Bernard" },
 };
@@ -100,6 +102,28 @@ export const DesinscriptionConfirmee: Story = {
 export const EvenementPasse: Story = {
   name: "Événement passé",
   args: { event: { ...event, date: new Date(Date.now() - day).toISOString() } },
+};
+
+export const Complet: Story = {
+  parameters: { role: "participant" },
+  args: { event: { ...event, remainingSeats: 0 } },
+  play: async ({ canvas }) => {
+    await expect(await canvas.findByText("Complet")).toBeInTheDocument();
+    await expect(
+      canvas.queryByRole("button", { name: "S'inscrire" }),
+    ).toBeNull();
+  },
+};
+
+export const InscritSurEvenementComplet: Story = {
+  name: "Inscrit sur un événement complet",
+  parameters: { role: "participant" },
+  args: { event: { ...event, remainingSeats: 0 } },
+  beforeEach: () => {
+    mocked(getMyRegistrations).mockResolvedValue([
+      { ...event, remainingSeats: 0 },
+    ]);
+  },
 };
 
 export const Organisateur: Story = {

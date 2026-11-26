@@ -12,10 +12,14 @@ import { getRegistrationStatus } from "./registrationStatus";
 
 interface RegistrationActionProps {
   event: Event;
+  onRegistrationChange?: () => void;
 }
 
 // Bloc « Inscription » de la fiche : affiche le bouton adapté à la situation
-export function RegistrationAction({ event }: RegistrationActionProps) {
+export function RegistrationAction({
+  event,
+  onRegistrationChange,
+}: RegistrationActionProps) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -64,10 +68,14 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
       await registerToEvent(event.id);
       setIsRegistered(true);
       setMessage("Inscription confirmée.");
+      onRegistrationChange?.();
     } catch (err) {
-      // 409 : déjà inscrit (autre onglet par exemple), on aligne le bouton
       if (err instanceof ApiError && err.status === 409) {
-        setIsRegistered(true);
+        const myEvents = await getMyRegistrations().catch(() => null);
+        if (myEvents) {
+          setIsRegistered(myEvents.some((myEvent) => myEvent.id === event.id));
+        }
+        onRegistrationChange?.();
       }
       setActionError(
         err instanceof Error ? err.message : "Impossible de vous inscrire.",
@@ -88,6 +96,7 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
       await unregisterFromEvent(event.id);
       setIsRegistered(false);
       setMessage("Désinscription confirmée.");
+      onRegistrationChange?.();
     } catch (err) {
       // 404 : déjà désinscrit (autre onglet par exemple), on aligne le bouton
       if (err instanceof ApiError && err.status === 404) {
@@ -142,6 +151,9 @@ export function RegistrationAction({ event }: RegistrationActionProps) {
           <ActionFeedback message={message} error={actionError} />
         </div>
       );
+
+    case "full":
+      return <p className="event-full">Complet</p>;
 
     case "not-registered":
       return (

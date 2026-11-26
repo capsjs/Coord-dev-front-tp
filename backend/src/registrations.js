@@ -1,4 +1,4 @@
-import { query } from './db.js';
+import { query, withTransaction } from './db.js';
 import { conflict, notFound } from './errors.js';
 
 export const toPublicRegistration = (r) => ({
@@ -24,17 +24,22 @@ export async function listEventRegistrations(eventId) {
 }
 
 export async function createRegistration(eventId, userId) {
-  try {
-    await query('INSERT INTO registrations (event_id, user_id) VALUES (?, ?)', [eventId, userId]);
-  } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') throw conflict('Vous êtes déjà inscrit à cet événement');
-    throw err;
-  }
-  const [registration] = await query(
-    'SELECT * FROM registrations WHERE event_id = ? AND user_id = ?',
-    [eventId, userId],
-  );
-  return registration;
+  return withTransaction(async (conn) => {
+    const [[event]] = await conn.query('SELECT capacity FROM events WHERE id = ? FOR UPDATE', [eventId]);
+    if (!event) throw notFound('Événement introuvable');
+    const [[{ alreadyRegistered, n }]] = await conn.query(
+      'SELECT COALESCE(SUM(user_id = ?), 0) AS alreadyRegistered, COUNT(*) AS n FROM registrations WHERE event_id = ?',
+      [userId, eventId],
+    );
+    if (Number(alreadyRegistered) > 0) throw conflict('Vous êtes déjà inscrit à cet événement');
+    if (event.capacity !== null && n >= event.capacity) throw conflict('Cet événement est complet');
+    await conn.query('INSERT INTO registrations (event_id, user_id) VALUES (?, ?)', [eventId, userId]);
+    const [[registration]] = await conn.query(
+      'SELECT * FROM registrations WHERE event_id = ? AND user_id = ?',
+      [eventId, userId],
+    );
+    return registration;
+  });
 }
 
 export async function deleteRegistration(eventId, userId) {

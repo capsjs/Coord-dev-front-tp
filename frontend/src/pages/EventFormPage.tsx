@@ -12,7 +12,14 @@ const initialFormData: EventFormData = {
   location: "",
   price: 0,
   currency: "EUR",
+  capacity: null,
 };
+
+function parseFieldValue(name: string, value: string) {
+  if (name === "price") return Number(value);
+  if (name === "capacity") return value === "" ? null : Number(value);
+  return value;
+}
 
 function EventFormPage() {
   const { id } = useParams();
@@ -42,6 +49,7 @@ function EventFormPage() {
           location: event.location,
           price: event.price,
           currency: event.currency,
+          capacity: event.capacity,
         });
       } catch {
         setError("Impossible de récupérer cet événement.");
@@ -60,7 +68,7 @@ function EventFormPage() {
 
     setFormData((previousData) => ({
       ...previousData,
-      [name]: name === "price" ? Number(value) : value,
+      [name]: parseFieldValue(name, value),
     }));
   };
 
@@ -161,6 +169,22 @@ function EventFormPage() {
             value={formData.price}
             onChange={handleChange}
             required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="capacity">
+            Nombre maximum de participants (facultatif)
+          </label>
+          <input
+            id="capacity"
+            name="capacity"
+            type="number"
+            min="1"
+            max="100000"
+            step="1"
+            value={formData.capacity ?? ""}
+            onChange={handleChange}
           />
         </div>
 

@@ -42,6 +42,8 @@ const mockEvent: Event = {
   location: "Montpellier",
   price: 15,
   currency: "EUR",
+  capacity: null,
+  remainingSeats: null,
   organizerId: 2,
   organizer: { id: 2, name: "Jean Dupont" },
 };
@@ -114,6 +116,38 @@ describe("RegistrationAction", () => {
     ).toBeInTheDocument();
   });
 
+  it("[F10.3] affiche Complet sans bouton à un participant non inscrit", async () => {
+    mockUser(participant);
+
+    renderAction({ ...mockEvent, capacity: 10, remainingSeats: 0 });
+
+    expect(await screen.findByText("Complet")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "S'inscrire" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("[F10.3] affiche Complet à un visiteur sur un événement complet", () => {
+    renderAction({ ...mockEvent, capacity: 10, remainingSeats: 0 });
+
+    expect(screen.getByText("Complet")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "S'inscrire" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("laisse un inscrit se désinscrire d'un événement complet", async () => {
+    mockUser(participant);
+    const fullEvent = { ...mockEvent, capacity: 10, remainingSeats: 0 };
+    mockedGetMyRegistrations.mockResolvedValue([fullEvent]);
+
+    renderAction(fullEvent);
+
+    expect(
+      await screen.findByRole("button", { name: "Se désinscrire" }),
+    ).toBeInTheDocument();
+  });
+
   it("[F06.5] n'affiche aucun bouton pour un événement passé", () => {
     renderAction({
       ...mockEvent,
@@ -176,6 +210,9 @@ describe("RegistrationAction", () => {
       mockedRegisterToEvent.mockRejectedValue(
         new ApiError(409, "Vous êtes déjà inscrit à cet événement"),
       );
+      mockedGetMyRegistrations
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([mockEvent]);
 
       renderAction();
       await userEvent.click(
@@ -186,8 +223,61 @@ describe("RegistrationAction", () => {
         "Vous êtes déjà inscrit à cet événement",
       );
       expect(
-        screen.getByRole("button", { name: "Se désinscrire" }),
+        await screen.findByRole("button", { name: "Se désinscrire" }),
       ).toBeInTheDocument();
+    });
+
+    it("[F10.3] signale un événement devenu complet et demande à rafraîchir la fiche", async () => {
+      mockedRegisterToEvent.mockRejectedValue(
+        new ApiError(409, "Cet événement est complet"),
+      );
+      const onRegistrationChange = vi.fn();
+
+      render(
+        <MemoryRouter initialEntries={["/events/1"]}>
+          <RegistrationAction
+            event={{ ...mockEvent, capacity: 10, remainingSeats: 1 }}
+            onRegistrationChange={onRegistrationChange}
+          />
+        </MemoryRouter>,
+      );
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Cet événement est complet",
+      );
+      expect(onRegistrationChange).toHaveBeenCalledOnce();
+      expect(
+        screen.getByRole("button", { name: "S'inscrire" }),
+      ).toBeInTheDocument();
+    });
+
+    it("[F10.2] demande à rafraîchir la fiche après une inscription", async () => {
+      mockedRegisterToEvent.mockResolvedValue({
+        eventId: 1,
+        userId: 3,
+        createdAt: "2026-11-25T10:00:00.000Z",
+      });
+      const onRegistrationChange = vi.fn();
+
+      render(
+        <MemoryRouter initialEntries={["/events/1"]}>
+          <RegistrationAction
+            event={mockEvent}
+            onRegistrationChange={onRegistrationChange}
+          />
+        </MemoryRouter>,
+      );
+      await userEvent.click(
+        await screen.findByRole("button", { name: "S'inscrire" }),
+      );
+
+      expect(await screen.findByRole("status")).toHaveTextContent(
+        "Inscription confirmée.",
+      );
+      expect(onRegistrationChange).toHaveBeenCalledOnce();
     });
 
     it("[F06.5] affiche le message de l'API si l'événement est passé (400)", async () => {
