@@ -78,6 +78,13 @@ jobs:
         working-directory: .
         run: make bdd
 
+      # Tableau « réussis / échoués » par fonctionnalité, affiché sur la page du workflow.
+      - name: Résumé des scénarios Gherkin
+        if: always()
+        working-directory: e2e
+        run: node scripts/resume-ci.js >> "$GITHUB_STEP_SUMMARY"
+
+      # Rapport détaillé (scénario, étape, attendu / reçu) : seulement en cas d'échec.
       - name: Rapport des scénarios Gherkin
         if: failure()
         uses: actions/upload-artifact@v4

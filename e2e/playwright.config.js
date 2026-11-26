@@ -11,7 +11,10 @@ const apiTestDir = defineBddConfig({
 });
 
 export default defineConfig({
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // En CI : rapport HTML (publié en cas d'échec) + résultats JSON (résumé affiché sur la page du workflow).
+  reporter: process.env.CI
+    ? [['list'], ['html', { open: 'never' }], ['json', { outputFile: 'reports/resultats.json' }]]
+    : 'list',
   // Chaque scénario crée ses propres comptes et événements : ils peuvent tourner en parallèle.
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
