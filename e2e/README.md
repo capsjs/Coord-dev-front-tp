@@ -6,6 +6,7 @@ Les critères d'acceptation des user stories, écrits en **Gherkin** (en frança
 | ------ | ------- | ------------------ |
 | **API** | `features/api/` | les règles métier, en appelant l'API en HTTP (codes, messages, données) |
 | **Interface** | `features/front/` | ce que voit et fait l'utilisateur dans Chromium : redirections, boutons affichés ou masqués, confirmations, messages |
+| **Parcours complets** | `features/front/parcours-complet.feature` | les étapes du MVP **enchaînées** dans l'interface, sans préparation par l'API : création des comptes, de l'événement, inscription, désinscription, suppression (SCRUM-24) |
 
 ## Lancer
 
@@ -43,6 +44,8 @@ En CI, le workflow **Scénarios Gherkin** les lance à chaque modification du ba
 **Acteurs** : `organisateur`, `autre organisateur`, `participant`, `administrateur` (API) et `visiteur` (non connecté). Niveau API : « Soit un … connecté ». Niveau interface : « Soit un … existant », puis « Et le … est connecté dans le navigateur ». Chaque scénario crée ses propres comptes et événements (titres uniques) : ils sont indépendants et tournent en parallèle.
 
 **Niveau interface** : les données de départ sont préparées par l'API ; les éléments sont repérés par ce que voit l'utilisateur (libellés, textes des boutons, titres), sans dépendre du code du front.
+
+**Bug connu (`@fail`)** : un scénario qui prouve une anomalie non encore corrigée porte `@fail` et la clé du ticket (ex. `@fail @SCRUM-94`). Il s'exécute et **doit échouer** : la CI reste verte tant que le bug existe. Quand le correctif est mergé, le scénario passe et Playwright le signale en erreur (« expected to fail, but passed ») : retirer `@fail`, ajouter le tag de l'exigence (ex. `@F01.2`) et régénérer la matrice. Le tag du ticket n'entre pas dans la matrice (seuls les tags d'exigence `@F01.2` y figurent).
 
 **Tableau d'événement** : champs `titre`, `description`, `date` (`dans 30 jours`, `hier`, ou une valeur brute), `lieu`, `prix`, `devise`.
 

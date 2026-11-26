@@ -15,6 +15,20 @@ Fonctionnalité: F01 à F05 – Gérer et consulter les événements dans l'inte
     Alors il arrive sur la liste des événements
     Et l'événement est affiché dans la liste
 
+  # Bug connu SCRUM-94 : le formulaire rend la description obligatoire (attribut « required »),
+  # alors que F01.2 et le contrat la disent facultative. « @fail » : ce scénario DOIT échouer tant que
+  # le bug existe ; quand le correctif sera mergé, il passera et la CI le signalera
+  # (« expected to fail, but passed ») : retirer alors « @fail » et ajouter le tag « @F01.2 ».
+  @fail @SCRUM-94
+  Scénario: L'organisateur crée un événement sans description
+    Soit l'organisateur est connecté dans le navigateur
+    Quand l'organisateur crée un événement avec le formulaire :
+      | titre | Meetup sans description |
+      | date  | dans 12 jours           |
+      | lieu  | Nantes                  |
+    Alors il arrive sur la liste des événements
+    Et l'événement est affiché dans la liste
+
   @F02.1
   Scénario: Le formulaire de modification est pré-rempli
     Soit un événement à venir créé par l'organisateur

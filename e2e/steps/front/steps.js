@@ -71,6 +71,36 @@ When(new RegExp(`^(?:le |l')${ACTEUR} se connecte avec le formulaire( et un mauv
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Mot de passe').fill(mauvais ? 'mauvais-mot-de-passe' : password);
   await page.getByRole('button', { name: 'Se connecter' }).click();
+  // Connexion réussie : on attend de quitter la page de connexion (la session est alors enregistrée).
+  if (!mauvais) await expect(page).not.toHaveURL(/\/login$/);
+});
+
+// Parcours complet (SCRUM-24) : le compte est créé avec le formulaire d'inscription, sans passer par l'API.
+When(/^un visiteur crée un compte (participant|organisateur) avec le formulaire$/, async ({ page, ctx }, role) => {
+  const compte = { name: `${role} ${suffix()}`, email: uniqueEmail(), password: PASSWORD };
+  await page.goto('/register');
+  await page.getByLabel('Nom').fill(compte.name);
+  await page.getByLabel('Email').fill(compte.email);
+  await page.getByLabel(/Mot de passe/).fill(compte.password);
+  await page.getByLabel(role === 'organisateur' ? 'Organisateur' : 'Participant').check();
+  await page.getByRole('button', { name: 'Créer mon compte' }).click();
+  // Le front redirige vers la liste une fois le compte créé et la session enregistrée : on l'attend.
+  await expect(page).toHaveURL(/\/events$/);
+  ctx.acteurs[role] = compte;
+});
+
+When(/^il clique sur « Modifier » de l'événement dans la liste et le renomme en "(.*)"$/, async ({ page, ctx }, titre) => {
+  await page.locator('article.event-card', { hasText: ctx.event.title }).getByRole('link', { name: 'Modifier' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Modifier un événement' })).toBeVisible();
+  ctx.event.title = `${titre} ${suffix()}`;
+  await page.getByLabel('Titre').fill(ctx.event.title);
+  await page.getByRole('button', { name: 'Enregistrer les modifications' }).click();
+  await expect(page).toHaveURL(/\/events$/);
+});
+
+When(/^il supprime l'événement depuis la liste et confirme$/, async ({ page, ctx }) => {
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('article.event-card', { hasText: ctx.event.title }).getByRole('button', { name: 'Supprimer' }).click();
 });
 
 When(new RegExp(`^(?:le |l')${QUI} se déconnecte$`), async ({ page }) => {
@@ -111,6 +141,8 @@ When(new RegExp(`^(?:le |l')${ACTEUR} crée un événement avec le formulaire :$
   await page.getByLabel('Date et heure').fill(localDateTime(days));
   await page.getByLabel('Lieu').fill(rows.lieu);
   await page.getByRole('button', { name: "Créer l'événement" }).click();
+  // Le front revient sur la liste une fois l'événement enregistré : on attend la fin de la création.
+  await expect(page).toHaveURL(/\/events$/);
 });
 
 When(/^il clique sur « Supprimer » et (refuse|accepte) la confirmation$/, async ({ page, ctx }, choix) => {
