@@ -48,12 +48,14 @@ jobs:
       - name: Navigateur Chromium
         run: npx --prefix e2e playwright install --with-deps chromium
 
-      # MySQL + l'API seulement : le front est démarré par Playwright (serveur Vite).
-      - name: Démarrage de MySQL et de l'API
+      # MySQL, l'API et le front servi par Docker (nginx, port 8080, utilisé par les scénarios SCRUM-93).
+      # Les autres scénarios d'interface utilisent le front démarré par Playwright (serveur Vite).
+      - name: Démarrage de MySQL, de l'API et du front Docker
         run: |
-          docker compose up -d --build db backend
+          docker compose up -d --build db backend frontend
           for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health >/dev/null && break; sleep 1; done
           curl -sf http://localhost:3000/api/health
+          for i in $(seq 1 30); do curl -sf http://localhost:8080/ >/dev/null && break; sleep 1; done
 
       - name: Scénarios Gherkin
         run: make bdd

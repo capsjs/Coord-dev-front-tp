@@ -38,7 +38,7 @@
 | **Unitaire** | Fonctions pures sans base ni réseau : validation, droits, erreurs (Back) ; formatage, conversion de dates, hooks (Front) | ✅ 47 tests (`backend/test/unit/`) | ❌ aucun | La majorité des tests ; chaque règle métier a ses cas limites |
 | **Intégration** | Back : l'API démarrée avec MySQL, appelée en HTTP. Front : une page ou un composant avec l'API simulée | ✅ 50 tests (`backend/test/*.test.js`) | ❌ aucun | Chaque route : cas nominal + chaque code d'erreur du contrat. Chaque page : chargement, erreur, vide, données |
 | **Contrat** | Les requêtes et les réponses respectent `openapi.yaml` | ✅ validateur dans l'API (requêtes toujours, réponses en dev et CI), Spectral, oasdiff | — | Toute route du contrat couverte ; aucun écart toléré |
-| **Fonctionnel / e2e** | Les critères d'acceptation écrits en Gherkin et exécutés : au niveau API, et dans le navigateur (Front + Back + base) | ✅ 36 scénarios Gherkin au niveau API (`e2e/features/api`) | ✅ 17 scénarios Gherkin dans l'interface (`e2e/features/front`, Chromium) | Parcours complet enchaîné de bout en bout (SCRUM-24) |
+| **Fonctionnel / e2e** | Les critères d'acceptation écrits en Gherkin et exécutés : au niveau API, et dans le navigateur (Front + Back + base), plus des parcours complets enchaînés | ✅ 36 scénarios Gherkin au niveau API (`e2e/features/api`) | ✅ 17 scénarios Gherkin dans l'interface + 2 parcours complets (`e2e/features/front`, Chromium, SCRUM-24) | Étendre les parcours aux nouvelles stories |
 
 Les critères d'interface (boutons, redirections, messages) sont aujourd'hui **vérifiés à la main** lors de la revue de PR), en attendant les tests Front.
 

@@ -15,6 +15,17 @@ Fonctionnalité: F01 à F05 – Gérer et consulter les événements dans l'inte
     Alors il arrive sur la liste des événements
     Et l'événement est affiché dans la liste
 
+  # Non-régression SCRUM-94 : la description est facultative (F01.2, contrat), le formulaire ne doit pas l'exiger.
+  @F01.2 @SCRUM-94
+  Scénario: L'organisateur crée un événement sans description
+    Soit l'organisateur est connecté dans le navigateur
+    Quand l'organisateur crée un événement avec le formulaire :
+      | titre | Meetup sans description |
+      | date  | dans 12 jours           |
+      | lieu  | Nantes                  |
+    Alors il arrive sur la liste des événements
+    Et l'événement est affiché dans la liste
+
   @F02.1
   Scénario: Le formulaire de modification est pré-rempli
     Soit un événement à venir créé par l'organisateur
