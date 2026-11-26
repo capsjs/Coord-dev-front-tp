@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { getEventById, deleteEvent } from "../api/events";
 import { useAuth } from "../auth/useAuth";
+import { EventParticipants } from "../components/EventParticipants";
 import { RegistrationAction } from "../components/RegistrationAction";
 import type { Event } from "../types/event";
 
@@ -158,6 +159,8 @@ export function EventDetailPage() {
           <RegistrationAction event={event} />
         </div>
       </div>
+
+      {canManage && <EventParticipants eventId={event.id} />}
     </section>
   );
 }

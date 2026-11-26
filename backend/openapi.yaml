@@ -4,7 +4,7 @@ info:
   contact:
     name: Équipe Coord Events
     url: https://github.com/capsjs/Coord-dev-front-tp
-  version: 1.2.0
+  version: 1.3.0
   description: |
     Contrat d'API du MVP de Coord Events : comptes, événements et inscriptions.
 
@@ -383,6 +383,31 @@ paths:
   /api/events/{id}/registrations:
     parameters:
       - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Inscriptions]
+      summary: Lister les participants d'un événement
+      description: |
+        Réservé à l'organisateur de l'événement ou à un admin. Renvoie le nom et l'e-mail
+        de chaque inscrit, du plus ancien au plus récent. Le nombre total d'inscrits est
+        la longueur du tableau ; tableau vide si personne n'est inscrit. — F09
+      operationId: listEventRegistrations
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Inscriptions à l'événement
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EventRegistration' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Ni organisateur de l'événement, ni admin
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example: { error: Seul l'organisateur de l'événement peut voir la liste des participants }
+        '404': { $ref: '#/components/responses/EventNotFound' }
     post:
       tags: [Inscriptions]
       summary: M'inscrire à un événement
@@ -612,3 +637,21 @@ components:
         eventId: { type: integer, example: 1 }
         userId: { type: integer, example: 3 }
         createdAt: { type: string, format: date-time }
+
+    EventRegistration:
+      type: object
+      description: Inscription vue par l'organisateur, avec le participant.
+      required: [eventId, userId, createdAt, user]
+      properties:
+        eventId: { type: integer, example: 1 }
+        userId: { type: integer, example: 3 }
+        createdAt: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/RegistrationUser' }
+
+    RegistrationUser:
+      type: object
+      required: [id, name, email]
+      properties:
+        id: { type: integer, example: 3 }
+        name: { type: string, example: Paul Participant }
+        email: { type: string, format: email, example: participant@events.local }

@@ -10,6 +10,7 @@
     { "id": "F08b", "jira": "SCRUM-20", "titre": "Protéger les accès selon le rôle", "prs": [10, 21] },
     { "id": "F06", "jira": "SCRUM-21", "titre": "S'inscrire à un événement", "prs": [] },
     { "id": "F07", "jira": "SCRUM-22", "titre": "Se désinscrire d'un événement", "prs": [] },
+    { "id": "F09", "jira": "SCRUM-30", "titre": "Consulter la liste des participants", "prs": [] },
     { "id": "CT", "jira": "SCRUM-65 / SCRUM-75", "titre": "Respect du contrat d'API", "prs": [3, 8] }
   ],
   "exigences": [
@@ -59,6 +60,10 @@
     { "id": "F07.1", "critere": "Le bouton « Se désinscrire » est visible sur la fiche si je suis inscrit.", "couche": "front", "statut": "livre" },
     { "id": "F07.2", "critere": "Après désinscription, une confirmation s'affiche et le bouton redevient « S'inscrire ».", "couche": "back+front", "statut": "livre", "version": "1.2.0" },
     { "id": "F07.3", "critere": "Ma place est libérée pour les autres participants.", "couche": "back", "statut": "livre", "version": "1.2.0" },
+
+    { "id": "F09.1", "critere": "La liste affiche le nom et l'e-mail de chaque inscrit, ainsi que le nombre total d'inscrits.", "couche": "back+front", "statut": "livre", "version": "1.3.0" },
+    { "id": "F09.2", "critere": "Seul l'organisateur de l'événement peut voir cette liste.", "couche": "back+front", "statut": "livre", "version": "1.3.0" },
+    { "id": "F09.3", "critere": "Si personne n'est inscrit, un message l'indique.", "couche": "back+front", "statut": "livre", "version": "1.3.0" },
 
     { "id": "CT.1", "critere": "Toute requête non conforme à openapi.yaml est refusée (400) avec un message clair.", "couche": "back", "statut": "livre", "version": "1.0.1" },
     { "id": "CT.2", "critere": "Les réponses de l'API sont conformes à openapi.yaml (sinon 500 en dev et en CI).", "couche": "back", "statut": "livre", "version": "1.0.1" },

@@ -267,6 +267,97 @@ describe('Mes inscriptions (GET /api/auth/me/registrations)', () => {
   });
 });
 
+describe("Liste des participants (GET /api/events/:id/registrations)", () => {
+  const listRegistrations = (eventId, token) => api('GET', `/api/events/${eventId}/registrations`, { token });
+
+  let organizer;
+  before(async () => {
+    organizer = await register('organizer');
+  });
+
+  it("renvoie le nom et l'e-mail de chaque inscrit, le total étant la longueur de la liste [F09.1]", async () => {
+    const event = await createEvent(organizer);
+    const first = await register('participant');
+    const second = await register('participant');
+    const registration = (await registerTo(event.id, first.token)).body;
+    assert.equal((await registerTo(event.id, second.token)).status, 201);
+
+    const res = await listRegistrations(event.id, organizer.token);
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, 2);
+    assert.deepEqual(res.body[0], {
+      ...registration,
+      user: { id: first.user.id, name: first.user.name, email: first.email },
+    });
+    assert.deepEqual(res.body.map((r) => r.user.id), [first.user.id, second.user.id]);
+  });
+
+  it("ne renvoie que les inscrits de cet événement et suit les désinscriptions [F09.1]", async () => {
+    const event = await createEvent(organizer);
+    const otherEvent = await createEvent(organizer);
+    const stays = await register('participant');
+    const leaves = await register('participant');
+    const elsewhere = await register('participant');
+    for (const p of [stays, leaves]) assert.equal((await registerTo(event.id, p.token)).status, 201);
+    assert.equal((await registerTo(otherEvent.id, elsewhere.token)).status, 201);
+    assert.equal((await unregisterFrom(event.id, leaves.token)).status, 204);
+
+    const res = await listRegistrations(event.id, organizer.token);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.map((r) => r.user.id), [stays.user.id]);
+  });
+
+  it("renvoie une liste vide si personne n'est inscrit [F09.3]", async () => {
+    const event = await createEvent(organizer);
+    const res = await listRegistrations(event.id, organizer.token);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body, []);
+  });
+
+  it("est accessible à un admin", async () => {
+    const event = await createEvent(organizer);
+    const participant = await register('participant');
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+    const adminToken = (await api('POST', '/api/auth/login', { body: ADMIN })).body.token;
+
+    const res = await listRegistrations(event.id, adminToken);
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.map((r) => r.user.id), [participant.user.id]);
+  });
+
+  it("refuse un autre organisateur et un participant, même inscrit (403) [F09.2] [F08b.4]", async () => {
+    const event = await createEvent(organizer);
+    const otherOrganizer = await register('organizer');
+    const participant = await register('participant');
+    assert.equal((await registerTo(event.id, participant.token)).status, 201);
+
+    for (const token of [otherOrganizer.token, participant.token]) {
+      const res = await listRegistrations(event.id, token);
+      assert.equal(res.status, 403);
+      assert.equal(res.body.error, "Seul l'organisateur de l'événement peut voir la liste des participants");
+    }
+  });
+
+  it('exige un jeton valide (401) [F08b.1]', async () => {
+    const event = await createEvent(organizer);
+    assert.equal((await listRegistrations(event.id)).status, 401);
+    assert.equal((await listRegistrations(event.id, 'faux.jeton.jwt')).status, 401);
+  });
+
+  it("renvoie 404 si l'événement n'existe pas, avant de vérifier les droits", async () => {
+    const participant = await register('participant');
+    for (const token of [organizer.token, participant.token]) {
+      const res = await listRegistrations(999999999, token);
+      assert.equal(res.status, 404);
+      assert.equal(res.body.error, 'Événement introuvable');
+    }
+  });
+
+  it('refuse un identifiant invalide (400)', async () => {
+    assert.equal((await listRegistrations('abc', organizer.token)).status, 400);
+  });
+});
+
 describe('Suppression des inscriptions en cascade', () => {
   it("supprime les inscriptions quand l'événement est supprimé [F03.4]", async () => {
     const organizer = await register('organizer');

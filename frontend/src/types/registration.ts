@@ -4,3 +4,11 @@ export interface Registration {
   userId: number;
   createdAt: string;
 }
+
+export interface EventRegistration extends Registration {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}

@@ -2,8 +2,14 @@ import { Router } from 'express';
 import { createEvent, deleteEvent, getEventOr404, listUpcomingEvents, toPublicEvent, updateEvent } from '../events.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { requireEventManager } from '../middleware/eventAccess.js';
-import { assertCanRegister } from '../permissions.js';
-import { createRegistration, deleteRegistration, toPublicRegistration } from '../registrations.js';
+import { assertCanRegister, assertCanViewRegistrations } from '../permissions.js';
+import {
+  createRegistration,
+  deleteRegistration,
+  listEventRegistrations,
+  toPublicEventRegistration,
+  toPublicRegistration,
+} from '../registrations.js';
 import { parseEventInput, requireId } from '../validation.js';
 
 const router = Router();
@@ -36,6 +42,13 @@ router.put('/:id', requireAuth, requireEventManager, async (req, res) => {
 router.delete('/:id', requireAuth, requireEventManager, async (req, res) => {
   await deleteEvent(req.event.id);
   res.status(204).end();
+});
+
+router.get('/:id/registrations', requireAuth, async (req, res) => {
+  const event = await getEventOr404(requireId(req.params.id));
+  assertCanViewRegistrations(req.user, event);
+  const registrations = await listEventRegistrations(event.id);
+  res.json(registrations.map(toPublicEventRegistration));
 });
 
 router.post('/:id/registrations', requireAuth, async (req, res) => {

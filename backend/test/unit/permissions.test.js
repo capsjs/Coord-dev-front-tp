@@ -2,7 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { assertCanManageEvent, assertCanRegister, canManageEvent } from '../../src/permissions.js';
+import { assertCanManageEvent, assertCanRegister, assertCanViewRegistrations, canManageEvent } from '../../src/permissions.js';
 
 const event = { id: 10, organizer_id: 1 };
 const organizer = { id: 1, role: 'organizer' };
@@ -49,6 +49,24 @@ describe('assertCanManageEvent', () => {
       assert.match(err.message, /organisateur/);
       return true;
     });
+  });
+});
+
+describe('assertCanViewRegistrations (F09)', () => {
+  it("autorise l'organisateur de l'événement et un admin", () => {
+    for (const user of [organizer, admin]) {
+      assert.doesNotThrow(() => assertCanViewRegistrations(user, event));
+    }
+  });
+
+  it('refuse un autre organisateur, un participant ou un visiteur (403) [F09.2]', () => {
+    for (const user of [otherOrganizer, participant, null]) {
+      assert.throws(() => assertCanViewRegistrations(user, event), (err) => {
+        assert.equal(err.status, 403);
+        assert.equal(err.message, "Seul l'organisateur de l'événement peut voir la liste des participants");
+        return true;
+      });
+    }
   });
 });
 
