@@ -123,7 +123,6 @@ function EventFormPage() {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            required
           />
         </div>
 
