@@ -4,7 +4,7 @@ Interface web du gestionnaire d'événements Coord Events, branchée sur l'API d
 
 **Stack** : React 19 · TypeScript (strict) · Vite · React Router
 
-> État actuel : **comptes et session, événements** (liste, fiche, création, modification, suppression) **et inscriptions** (S'inscrire / Se désinscrire sur la fiche), branchés sur l'API.
+> État actuel : **comptes et session, événements** (liste, fiche, création, modification, suppression) **et inscriptions** (S'inscrire / Se désinscrire sur la fiche, liste des participants pour l'organisateur), branchés sur l'API.
 
 ## Démarrage rapide
 
@@ -32,6 +32,20 @@ Le back autorise déjà `http://localhost:5173` (variable `CORS_ORIGIN`). Si vou
 | `npm run lint`    | Analyse du code (oxlint)                   |
 | `npm run preview` | Sert le build de production en local       |
 
+### Storybook
+
+Depuis `frontend/`, lancez `npm ci` puis `npm run storybook` et ouvrez
+[Storybook sur le port 6006](http://localhost:6006). Les stories utilisent les
+styles de l’application, des sessions fictives et des réponses simulées pour
+les inscriptions. Elles fonctionnent sans API ni MySQL.
+
+Le catalogue présente les badges de rôle, la structure de page, la route
+protégée et les états du bloc d’inscription. Les scénarios interactifs
+démontrent l’inscription et la désinscription. Placez les nouvelles stories
+`*.stories.tsx` à côté de leur composant.
+
+`npm run build-storybook` génère le site statique dans `storybook-static/`.
+
 ### Comptes de démo
 
 Créés par le back au premier démarrage (voir le README racine).
@@ -49,7 +63,7 @@ Créés par le back au premier démarrage (voir le README racine).
 | `/register`   | public    | Créer un compte (participant ou organisateur) |
 | `/login`      | public    | Se connecter                               |
 | `/events`     | public    | Liste des événements à venir               |
-| `/events/:id` | public    | Détail d'un événement, bouton S'inscrire / Se désinscrire |
+| `/events/:id` | public    | Détail d'un événement, bouton S'inscrire / Se désinscrire ; liste des participants pour l'organisateur et l'admin |
 | `/profile`    | connecté  | Mon profil                                 |
 | `*`           | public    | Page introuvable                           |
 

@@ -77,6 +77,7 @@ Toutes les routes sont documentées dans **Swagger** : http://localhost:3000/api
 | `POST`   | `/api/events`            | organizer, admin | Créer un événement                     |
 | `PUT`    | `/api/events/:id`        | organisateur de l'événement, admin | Modifier un événement |
 | `DELETE` | `/api/events/:id`        | organisateur de l'événement, admin | Supprimer un événement (et ses inscriptions) |
+| `GET`    | `/api/events/:id/registrations` | organisateur de l'événement, admin | Liste des inscrits (nom, e-mail), du plus ancien au plus récent |
 | `POST`   | `/api/events/:id/registrations` | participant | S'inscrire à un événement à venir (pas de double inscription) |
 | `DELETE` | `/api/events/:id/registrations/me` | connecté | Se désinscrire d'un événement (404 si pas inscrit) |
 
@@ -144,7 +145,7 @@ backend/
 │   ├── events.js           # accès aux données événements
 │   ├── registrations.js    # accès aux données inscriptions
 │   ├── validation.js       # validation des entrées
-│   ├── permissions.js      # règles d'accès : organisateur ou admin (F08), inscription (F06)
+│   ├── permissions.js      # règles d'accès : organisateur ou admin (F08), inscription (F06), participants (F09)
 │   ├── errors.js           # erreurs HTTP + middleware d'erreur
 │   ├── openapi.js          # charge openapi.yaml
 │   ├── middleware/

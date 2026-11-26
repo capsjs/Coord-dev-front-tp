@@ -4,6 +4,10 @@ import { MemoryRouter, Route, Routes } from "react-router";
 
 import { EventDetailPage } from "../../src/pages/EventDetailPage";
 import { getEventById, deleteEvent } from "../../src/api/events";
+import {
+  getEventRegistrations,
+  getMyRegistrations,
+} from "../../src/api/registrations";
 import { useAuth } from "../../src/auth/useAuth";
 import type { Event } from "../../src/types/event";
 import type { User } from "../../src/types/user";
@@ -14,6 +18,13 @@ vi.mock("../../src/api/events", () => ({
   deleteEvent: vi.fn(),
 }));
 
+vi.mock("../../src/api/registrations", () => ({
+  getEventRegistrations: vi.fn(),
+  getMyRegistrations: vi.fn(),
+  registerToEvent: vi.fn(),
+  unregisterFromEvent: vi.fn(),
+}));
+
 // Simulation du système d'authentification
 vi.mock("../../src/auth/useAuth", () => ({
   useAuth: vi.fn(),
@@ -22,6 +33,8 @@ vi.mock("../../src/auth/useAuth", () => ({
 const mockedGetEventById = vi.mocked(getEventById);
 const mockedDeleteEvent = vi.mocked(deleteEvent);
 const mockedUseAuth = vi.mocked(useAuth);
+const mockedGetEventRegistrations = vi.mocked(getEventRegistrations);
+const mockedGetMyRegistrations = vi.mocked(getMyRegistrations);
 
 const mockEvent: Event = {
   id: 1,
@@ -84,6 +97,8 @@ describe("EventDetailPage", () => {
 
     mockedGetEventById.mockResolvedValue(mockEvent);
     mockedDeleteEvent.mockResolvedValue(undefined);
+    mockedGetEventRegistrations.mockResolvedValue([]);
+    mockedGetMyRegistrations.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -313,5 +328,48 @@ describe("EventDetailPage", () => {
     expect(
       screen.getByRole("button", { name: "Supprimer" }),
     ).toBeInTheDocument();
+  });
+
+  it("[F09.2] affiche la liste des participants à l'organisateur propriétaire", async () => {
+    mockOrganizer();
+
+    renderPage();
+
+    expect(
+      await screen.findByRole("heading", { name: "Participants" }),
+    ).toBeInTheDocument();
+    expect(mockedGetEventRegistrations).toHaveBeenCalledWith(1);
+  });
+
+  it("[F09.2] affiche la liste des participants à un administrateur", async () => {
+    mockUser({ ...organizer, id: 99, role: "admin" });
+
+    renderPage();
+
+    expect(
+      await screen.findByRole("heading", { name: "Participants" }),
+    ).toBeInTheDocument();
+  });
+
+  it("[F09.2] masque la liste des participants aux autres utilisateurs", async () => {
+    const others: (User | null)[] = [
+      null,
+      { ...organizer, id: 3, role: "participant" },
+      { ...organizer, id: 99, role: "organizer" },
+    ];
+
+    for (const user of others) {
+      mockUser(user);
+      const { unmount } = renderPage();
+
+      await screen.findByRole("heading", { name: "Conférence React" });
+      expect(
+        screen.queryByRole("heading", { name: "Participants" }),
+      ).not.toBeInTheDocument();
+
+      unmount();
+    }
+
+    expect(mockedGetEventRegistrations).not.toHaveBeenCalled();
   });
 });
