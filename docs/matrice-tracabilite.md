@@ -6,15 +6,15 @@
 
 Version courante du contrat d'API : **1.3.0**
 
-**44 exigences** · **153 tests reliés** (56 back, 44 front, 53 scénarios Gherkin)
+**44 exigences** · **154 tests reliés** (56 back, 45 front, 53 scénarios Gherkin)
 
 ## Synthèse de couverture
 
 | Statut | Nombre |
 |---|---:|
-| Testé (back + front) | 17 |
+| Testé (back + front) | 18 |
 | Testé (back) | 19 |
-| Testé (back) · front à compléter | 2 |
+| Testé (back) · front à compléter | 1 |
 | Testé (front) | 6 |
 
 La colonne **Version** désigne la version du contrat API ayant livré l’exigence côté backend.
@@ -39,7 +39,7 @@ La valeur « à renseigner » signifie qu'aucune PR n'est encore documentée pou
 | Exigence | Critère | Story Jira | Couche | Tests | Commit / PR | Version | Statut |
 |---|---|---|---|---|---|---|---|
 | **F01.1** | Un événement contient titre, description, date et heure, lieu. | SCRUM-15 | back+front | **Back** : `backend/test/contract.test.js` › Conformité des requêtes au contrat › refuse une date sans heure ou sans fuseau horaire (format date-time)<br>**Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › crée l'événement et en fait l'organisateur l'utilisateur connecté<br>**Front** : `frontend/tests/pages/EventFormPage.test.tsx` › EventFormPage › affiche le formulaire de création<br>**Front** : `frontend/tests/pages/EventFormPage.test.tsx` › EventFormPage › crée un événement avec une date ISO 8601<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › L'organisateur crée un événement qui lui est associé<br>**Gherkin (interface)** : `e2e/features/front/evenements.feature` › F01 à F05 – Gérer et consulter les événements dans l'interface (SCRUM-15 à SCRUM-19) › L'organisateur crée un événement avec le formulaire et le retrouve dans la liste | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.0.0 | Testé (back + front) |
-| **F01.2** | Titre, date et lieu sont obligatoires ; un message indique le champ manquant. | SCRUM-15 | back+front | **Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › valide les champs (400)<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › Le titre, la date et le lieu sont obligatoires | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.0.0 | Testé (back) · front à compléter |
+| **F01.2** | Titre, date et lieu sont obligatoires ; un message indique le champ manquant. | SCRUM-15 | back+front | **Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › valide les champs (400)<br>**Front** : `frontend/tests/pages/EventFormPage.test.tsx` › EventFormPage › crée un événement sans description<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › Le titre, la date et le lieu sont obligatoires | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.0.0 | Testé (back + front) |
 | **F01.3** | Une date passée est refusée. | SCRUM-15 | back | **Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › valide les champs (400)<br>**Back** : `backend/test/unit/validation.test.js` › requireFutureDate › refuse une date passée ou égale à maintenant<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › Une date passée est refusée | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.0.0 | Testé (back) |
 | **F01.4** | L'événement créé est associé à l'organisateur connecté. | SCRUM-15 | back | **Back** : `backend/test/events.test.js` › Création d'un événement (POST /api/events) › crée l'événement et en fait l'organisateur l'utilisateur connecté<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › L'organisateur crée un événement qui lui est associé | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.0.0 | Testé (back) |
 | **F01.5** | Après création, une confirmation s'affiche et l'événement apparaît dans la liste. | SCRUM-15 | back+front | **Back** : `backend/test/events.test.js` › Liste des événements à venir (GET /api/events) › est publique et renvoie les événements à venir triés par date croissante<br>**Gherkin (API)** : `e2e/features/api/F01-creer-un-evenement.feature` › F01 – Créer un événement (SCRUM-15) › L'événement créé apparaît dans la liste<br>**Gherkin (interface)** : `e2e/features/front/evenements.feature` › F01 à F05 – Gérer et consulter les événements dans l'interface (SCRUM-15 à SCRUM-19) › L'organisateur crée un événement avec le formulaire et le retrouve dans la liste | [#4](https://github.com/capsjs/Coord-dev-front-tp/pull/4), [#5](https://github.com/capsjs/Coord-dev-front-tp/pull/5) | 1.1.0 | Testé (back + front) |

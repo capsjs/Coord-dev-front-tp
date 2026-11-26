@@ -126,6 +126,32 @@ describe("EventFormPage", () => {
     expect(await screen.findByText("Liste des événements")).toBeInTheDocument();
   });
 
+  it("[F01.2] crée un événement sans description", async () => {
+    renderPage();
+
+    fillForm();
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "" },
+    });
+
+    // Seuls le titre, la date et le lieu sont obligatoires
+    expect(screen.getByLabelText("Description")).not.toBeRequired();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Créer l'événement",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockedCreateEvent).toHaveBeenCalledOnce();
+    });
+
+    expect(mockedCreateEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ description: "" }),
+    );
+  });
+
   it("[F02.1] préremplit le formulaire en mode modification", async () => {
     renderPage("/events/1/edit");
 
