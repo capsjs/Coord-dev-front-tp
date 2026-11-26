@@ -63,7 +63,31 @@ Given('le participant a une session expirée dans le navigateur', async ({ page,
   await setToken(page, jwt.sign({ sub: user.id, role: user.role, exp: Math.floor(Date.now() / 1000) - 60 }, JWT_SECRET));
 });
 
+// Front servi par Docker (nginx, image de production) : différent du serveur Vite utilisé par les autres scénarios.
+const FRONT_DOCKER_URL = process.env.FRONT_DOCKER_URL ?? 'http://localhost:8080';
+
+// Précondition : sans le conteneur, un scénario « @fail » échouerait pour une mauvaise raison (connexion refusée)
+// et serait compté comme un échec attendu. On l'ignore donc explicitement.
+Given('le front servi par Docker est démarré', async ({ apiRequest, $test }) => {
+  const res = await apiRequest.get(`${FRONT_DOCKER_URL}/`).catch(() => null);
+  $test.skip(!res || res.status() !== 200, `Front Docker injoignable sur ${FRONT_DOCKER_URL} (make up)`);
+});
+
 // ─────────────────────────────────────────────── Actions (Quand)
+
+When(/^le visiteur ouvre directement l'adresse "(.*)" du front Docker$/, async ({ page }, chemin) => {
+  await page.goto(`${FRONT_DOCKER_URL}${chemin}`);
+});
+
+When("le visiteur ouvre le front Docker et clique sur « Événements » dans le menu", async ({ page }) => {
+  await page.goto(`${FRONT_DOCKER_URL}/`);
+  await page.getByRole('navigation').getByRole('link', { name: 'Événements' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Événements' })).toBeVisible();
+});
+
+When('il rafraîchit la page', async ({ page }) => {
+  await page.reload();
+});
 
 When(new RegExp(`^(?:le |l')${ACTEUR} se connecte avec le formulaire( et un mauvais mot de passe)?$`), async ({ page, ctx }, nom, mauvais) => {
   const { email, password } = acteur(ctx, nom);

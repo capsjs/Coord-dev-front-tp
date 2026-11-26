@@ -6,6 +6,7 @@ Les critères d'acceptation des user stories, écrits en **Gherkin** (en frança
 | ------ | ------- | ------------------ |
 | **API** | `features/api/` | les règles métier, en appelant l'API en HTTP (codes, messages, données) |
 | **Interface** | `features/front/` | ce que voit et fait l'utilisateur dans Chromium : redirections, boutons affichés ou masqués, confirmations, messages |
+| **Front servi par Docker** | `features/front/front-docker.feature` | l'image de production du front (nginx, port 8080) : accès direct à une adresse et rafraîchissement d'une page (SCRUM-93). Ignoré si le conteneur n'est pas démarré (`make up`) |
 | **Parcours complets** | `features/front/parcours-complet.feature` | les étapes du MVP **enchaînées** dans l'interface, sans préparation par l'API : création des comptes, de l'événement, inscription, désinscription, suppression (SCRUM-24) |
 
 ## Lancer
