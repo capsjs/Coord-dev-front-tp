@@ -36,6 +36,8 @@ const mockEvent: Event = {
   location: "Montpellier",
   price: 15,
   currency: "EUR",
+  capacity: null,
+  remainingSeats: null,
   organizerId: 2,
   organizer: {
     id: 2,

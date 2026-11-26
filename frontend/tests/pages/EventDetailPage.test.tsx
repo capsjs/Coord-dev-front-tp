@@ -7,6 +7,7 @@ import { getEventById, deleteEvent } from "../../src/api/events";
 import {
   getEventRegistrations,
   getMyRegistrations,
+  registerToEvent,
 } from "../../src/api/registrations";
 import { useAuth } from "../../src/auth/useAuth";
 import type { Event } from "../../src/types/event";
@@ -35,6 +36,7 @@ const mockedDeleteEvent = vi.mocked(deleteEvent);
 const mockedUseAuth = vi.mocked(useAuth);
 const mockedGetEventRegistrations = vi.mocked(getEventRegistrations);
 const mockedGetMyRegistrations = vi.mocked(getMyRegistrations);
+const mockedRegisterToEvent = vi.mocked(registerToEvent);
 
 const mockEvent: Event = {
   id: 1,
@@ -44,6 +46,8 @@ const mockEvent: Event = {
   location: "Montpellier",
   price: 15,
   currency: "EUR",
+  capacity: null,
+  remainingSeats: null,
   organizerId: 2,
   organizer: {
     id: 2,
@@ -371,5 +375,82 @@ describe("EventDetailPage", () => {
     }
 
     expect(mockedGetEventRegistrations).not.toHaveBeenCalled();
+  });
+
+  it("[F10.2] affiche Sans limite si aucune capacité n'est fixée", async () => {
+    renderPage();
+
+    expect(await screen.findByText("Sans limite")).toBeInTheDocument();
+  });
+
+  it("[F10.2] affiche le nombre de places restantes", async () => {
+    mockedGetEventById.mockResolvedValue({
+      ...mockEvent,
+      capacity: 10,
+      remainingSeats: 2,
+    });
+
+    renderPage();
+
+    expect(
+      await screen.findByText("2 places restantes sur 10"),
+    ).toBeInTheDocument();
+  });
+
+  it("[F10.2] accorde au singulier une seule place restante", async () => {
+    mockedGetEventById.mockResolvedValue({
+      ...mockEvent,
+      capacity: 10,
+      remainingSeats: 1,
+    });
+
+    renderPage();
+
+    expect(
+      await screen.findByText("1 place restante sur 10"),
+    ).toBeInTheDocument();
+  });
+
+  it("[F10.3] affiche Complet quand il ne reste aucune place", async () => {
+    mockedGetEventById.mockResolvedValue({
+      ...mockEvent,
+      capacity: 10,
+      remainingSeats: 0,
+    });
+
+    renderPage();
+
+    expect(await screen.findByText("Complet (10 places)")).toBeInTheDocument();
+  });
+
+  it("accorde au singulier un événement complet d'une seule place", async () => {
+    mockedGetEventById.mockResolvedValue({
+      ...mockEvent,
+      capacity: 1,
+      remainingSeats: 0,
+    });
+
+    renderPage();
+
+    expect(await screen.findByText("Complet (1 place)")).toBeInTheDocument();
+  });
+
+  it("[F10.2] met à jour les places restantes après une inscription", async () => {
+    mockUser({ ...organizer, id: 3, role: "participant" });
+    mockedGetEventById
+      .mockResolvedValueOnce({ ...mockEvent, capacity: 10, remainingSeats: 1 })
+      .mockResolvedValueOnce({ ...mockEvent, capacity: 10, remainingSeats: 0 });
+    mockedRegisterToEvent.mockResolvedValue({
+      eventId: 1,
+      userId: 3,
+      createdAt: "2026-11-25T10:00:00.000Z",
+    });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole("button", { name: "S'inscrire" }));
+
+    expect(await screen.findByText("Complet (10 places)")).toBeInTheDocument();
+    expect(mockedGetEventById).toHaveBeenCalledTimes(2);
   });
 });

@@ -6,6 +6,8 @@ export interface Event {
   location: string;
   price: number;
   currency: string;
+  capacity: number | null;
+  remainingSeats: number | null;
   organizerId: number;
   organizer: {
     id: number;

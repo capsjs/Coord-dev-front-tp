@@ -25,11 +25,37 @@ export async function waitForDb({ retries = 30, delayMs = 2000 } = {}) {
   throw new Error('Impossible de se connecter à MySQL');
 }
 
+export async function withTransaction(fn) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const result = await fn(conn);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+const ADDED_COLUMNS = [
+  { table: 'events', column: 'capacity', definition: 'INT UNSIGNED NULL DEFAULT NULL AFTER currency' },
+];
+
 export async function migrate() {
   const sql = await readFile(new URL('./schema.sql', import.meta.url), 'utf8');
   const conn = await mysql.createConnection({ ...baseOptions, multipleStatements: true });
   try {
     await conn.query(sql);
+    for (const { table, column, definition } of ADDED_COLUMNS) {
+      const [[{ n }]] = await conn.query(
+        'SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+        [table, column],
+      );
+      if (n === 0) await conn.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
   } finally {
     await conn.end();
   }

@@ -75,6 +75,27 @@ export function EventDetailPage() {
     }
   }
 
+  async function refreshEvent() {
+    if (!event) return;
+    try {
+      setEvent(await getEventById(event.id));
+    } catch {
+      return;
+    }
+  }
+
+  function formatSeats(
+    capacity: number | null,
+    remainingSeats: number | null,
+  ) {
+    if (capacity === null || remainingSeats === null) return "Sans limite";
+    if (remainingSeats === 0) {
+      return `Complet (${capacity} place${capacity > 1 ? "s" : ""})`;
+    }
+    const plural = remainingSeats > 1 ? "s" : "";
+    return `${remainingSeats} place${plural} restante${plural} sur ${capacity}`;
+  }
+
   function formatPrice(price: number, currency: string) {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -156,7 +177,15 @@ export function EventDetailPage() {
             <strong>Prix :</strong> {formatPrice(event.price, event.currency)}
           </p>
 
-          <RegistrationAction event={event} />
+          <p>
+            <strong>Places :</strong>{" "}
+            {formatSeats(event.capacity, event.remainingSeats)}
+          </p>
+
+          <RegistrationAction
+            event={event}
+            onRegistrationChange={refreshEvent}
+          />
         </div>
       </div>
 

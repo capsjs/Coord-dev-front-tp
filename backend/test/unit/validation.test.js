@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 
 import {
   oneOf,
+  optionalCapacity,
   optionalCurrency,
   optionalPrice,
   optionalString,
@@ -184,11 +185,29 @@ describe('optionalCurrency', () => {
   });
 });
 
+describe('optionalCapacity (F10)', () => {
+  it('vaut null (pas de limite) si absente ou null [F10.1]', () => {
+    assert.equal(optionalCapacity(undefined), null);
+    assert.equal(optionalCapacity(null), null);
+  });
+
+  it('accepte un entier entre 1 et 100000 [F10.1]', () => {
+    assert.equal(optionalCapacity(1), 1);
+    assert.equal(optionalCapacity(100000), 100000);
+  });
+
+  it('refuse zéro, un négatif, un décimal, une chaîne ou une valeur trop grande', () => {
+    for (const value of [0, -5, 1.5, '10', 100001, Number.NaN]) {
+      rejects400(() => optionalCapacity(value), /« capacity » doit être un entier entre 1 et 100000/);
+    }
+  });
+});
+
 describe('parseEventInput', () => {
   const date = '2099-06-01T18:00:00.000Z';
 
   it('valide et normalise un événement complet', () => {
-    const input = { title: '  Meetup  ', description: ' Talks ', date, location: ' Lyon ', price: 9.999, currency: 'USD' };
+    const input = { title: '  Meetup  ', description: ' Talks ', date, location: ' Lyon ', price: 9.999, currency: 'USD', capacity: 20 };
     const event = parseEventInput(input);
     assert.deepEqual({ ...event, date: event.date.toISOString() }, {
       title: 'Meetup',
@@ -197,6 +216,7 @@ describe('parseEventInput', () => {
       location: 'Lyon',
       price: 10,
       currency: 'USD',
+      capacity: 20,
     });
   });
 
@@ -205,6 +225,7 @@ describe('parseEventInput', () => {
     assert.equal(event.description, '');
     assert.equal(event.price, 0);
     assert.equal(event.currency, 'EUR');
+    assert.equal(event.capacity, null);
   });
 
   it('refuse un corps absent', () => {
