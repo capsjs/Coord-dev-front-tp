@@ -10,6 +10,7 @@ on:
       - '.github/workflows/ci-backend.yml'
       - 'docs/exigences.json'
       - 'docs/matrice-tracabilite.md'
+      - 'e2e/**'
   pull_request:
     paths:
       - 'backend/**'
@@ -18,6 +19,7 @@ on:
       - '.github/workflows/ci-backend.yml'
       - 'docs/exigences.json'
       - 'docs/matrice-tracabilite.md'
+      - 'e2e/**'
 
 concurrency:
   group: ci-backend-${{ github.ref }}
@@ -70,6 +72,19 @@ jobs:
       - name: Build, tests et couverture
         working-directory: .
         run: make coverage
+
+      # Scénarios Gherkin (SCRUM-74) : les critères d'acceptation des stories, exécutés contre l'API démarrée.
+      - name: Scénarios Gherkin (niveau API)
+        working-directory: .
+        run: make bdd
+
+      - name: Rapport des scénarios Gherkin
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scenarios-gherkin
+          path: e2e/playwright-report/
+          if-no-files-found: ignore
 
       - name: Résumé de la couverture
         if: always()

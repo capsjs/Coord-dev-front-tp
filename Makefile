@@ -2,7 +2,7 @@ COMPOSE := docker compose
 API_URL ?= http://localhost:3000
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage shell db docs health
+.PHONY: help up down restart build rebuild logs logs-db ps reset test lint install hooks coverage bdd shell db docs health
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles :"
@@ -85,6 +85,11 @@ coverage: ## Mesure la couverture du back (tests d'intégration + unitaires) →
 	@echo "Rapport HTML : backend/coverage/report/index.html"
 	@# Relance l'API normalement (sans mesure de couverture).
 	$(COMPOSE) up -d backend >/dev/null
+
+bdd: ## Scénarios Gherkin (critères d'acceptation) contre l'API démarrée (make up)
+	@test -d e2e/node_modules || (cd e2e && npm ci)
+	@for i in $$(seq 1 60); do curl -sf $(API_URL)/api/health >/dev/null && break; sleep 1; done
+	cd e2e && API_URL=$(API_URL) npm run test:api
 
 lint: ## Vérifie le code du back (ESLint) et le contrat d'API (Spectral)
 	@test -d backend/node_modules || (cd backend && npm install)

@@ -87,6 +87,40 @@ function taggedTests() {
   return tests;
 }
 
+// Scénarios Gherkin (SCRUM-74) : e2e/features/**/*.feature, tags « @F01.3 » au-dessus d'un scénario.
+// Ils sont listés dans la matrice mais ne changent pas le statut (calculé sur les tests back et front).
+const SCENARIO_RE = /^\s*(Scénario|Plan du scénario|Scenario|Scenario Outline)\s*:\s*(.+)$/i;
+const FEATURE_RE = /^\s*(Fonctionnalité|Feature)\s*:\s*(.+)$/i;
+const GHERKIN_TAG_RE = /@([A-Za-z]+\d*[a-z]?\.\d+)\b/g;
+
+function gherkinScenarios() {
+  const scenarios = [];
+  for (const path of testFiles(join(rootDir, "e2e/features"), [".feature"])) {
+    const file = relative(rootDir, path).replaceAll("\\", "/");
+    let feature = "";
+    let pending = [];
+    for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+      const featureMatch = line.match(FEATURE_RE);
+      if (featureMatch) {
+        feature = featureMatch[2].trim();
+        continue;
+      }
+      if (line.trim().startsWith("@")) {
+        pending.push(...[...line.matchAll(GHERKIN_TAG_RE)].map((m) => m[1]));
+        continue;
+      }
+      const scenarioMatch = line.match(SCENARIO_RE);
+      if (scenarioMatch) {
+        if (pending.length) {
+          scenarios.push({ file, layer: "gherkin", suite: feature, title: scenarioMatch[2].trim(), tags: [...new Set(pending)] });
+        }
+        pending = [];
+      }
+    }
+  }
+  return scenarios;
+}
+
 const STATUTS = {
   complet: "Testé (back + front)",
   back: "Testé (back)",
@@ -126,7 +160,7 @@ function escapeCell(value) {
 }
 
 function formatTest(test) {
-  const layer = test.layer === "back" ? "Back" : "Front";
+  const layer = { back: "Back", front: "Front", gherkin: "Gherkin" }[test.layer];
 
   const suite = test.suite ? `${escapeCell(test.suite)} › ` : "";
 
@@ -142,7 +176,7 @@ function formatPrs(story) {
 }
 
 function build() {
-  const tests = taggedTests();
+  const tests = [...taggedTests(), ...gherkinScenarios()];
   const known = new Set(exigences.map((e) => e.id));
   const errors = [];
 
@@ -190,17 +224,18 @@ function build() {
 
   const backCount = tests.filter((t) => t.layer === "back").length;
   const frontCount = tests.filter((t) => t.layer === "front").length;
+  const gherkinCount = tests.filter((t) => t.layer === "gherkin").length;
 
   const lines = [
     "# Matrice de traçabilité exigence → story Jira → test → PR → version",
     "",
     "> Fichier généré automatiquement par `cd backend && npm run matrix`.",
-    "> Sources : [`exigences.json`](exigences.json) (stories et PR), tests backend et frontend.",
+    "> Sources : [`exigences.json`](exigences.json) (stories et PR), tests backend et frontend, scénarios Gherkin (`e2e/features`).",
     "> Ne pas modifier à la main : la CI vérifie qu’il est à jour.",
     "",
     `Version courante du contrat d'API : **${apiVersion}**`,
     "",
-    `**${rows.length} exigences** · **${tests.length} tests reliés** (${backCount} back, ${frontCount} front)`,
+    `**${rows.length} exigences** · **${tests.length} tests reliés** (${backCount} back, ${frontCount} front, ${gherkinCount} scénarios Gherkin)`,
     "",
     "## Synthèse de couverture",
     "",
