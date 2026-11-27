@@ -1,7 +1,9 @@
 import { Link } from 'react-router'
 import { useAuth } from '../auth/useAuth'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export function HomePage() {
+  usePageTitle('Accueil')
   const { user } = useAuth()
 
   return (

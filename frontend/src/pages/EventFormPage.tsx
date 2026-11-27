@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { createEvent, getEventById, updateEvent } from "../api/events";
 import type { EventFormData } from "../types/eventFormData";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 
 const initialFormData: EventFormData = {
@@ -19,6 +20,7 @@ function EventFormPage() {
   const navigate = useNavigate();
 
   const isEditMode = Boolean(id);
+  usePageTitle(isEditMode ? "Modifier un événement" : "Créer un événement");
 
   const [formData, setFormData] = useState<EventFormData>(initialFormData);
   const [loading, setLoading] = useState(isEditMode);

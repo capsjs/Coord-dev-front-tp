@@ -3,8 +3,10 @@ import { Link, useNavigate } from "react-router";
 import { getEvents, deleteEvent } from "../api/events";
 import { useAuth } from "../auth/useAuth";
 import type { Event } from "../types/event";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export function EventsPage() {
+  usePageTitle("Événements");
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

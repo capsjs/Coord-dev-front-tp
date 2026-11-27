@@ -1,7 +1,9 @@
 import { useAuth } from '../auth/useAuth'
 import { RoleBadge } from '../components/RoleBadge'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export function ProfilePage() {
+  usePageTitle('Mon profil')
   const { user } = useAuth()
   // ProtectedRoute garantit qu'un utilisateur est connecté ici
   if (!user) return null

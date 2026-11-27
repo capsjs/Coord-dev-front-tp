@@ -5,6 +5,7 @@ import { useAuth } from "../auth/useAuth";
 import { EventParticipants } from "../components/EventParticipants";
 import { RegistrationAction } from "../components/RegistrationAction";
 import type { Event } from "../types/event";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export function EventDetailPage() {
   const { id } = useParams();
@@ -15,6 +16,9 @@ export function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Le titre de l'événement une fois chargé, un titre générique en attendant
+  usePageTitle(event?.title ?? "Fiche de l'événement");
 
   useEffect(() => {
     async function loadEvent() {
