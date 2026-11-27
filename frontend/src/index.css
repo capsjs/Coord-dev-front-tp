@@ -8,11 +8,14 @@
   --accent: #f0643c;
 
   --text: #1c2430;
-  --muted: #718096;
+  /* Texte secondaire : 5,4:1 sur le fond (WCAG AA demande 4,5:1) */
+  --muted: #5a6578;
 
   --bg: #f4f6fa;
   --surface: #ffffff;
   --border: #e3e8ef;
+  /* Bord des champs : 3,6:1 sur blanc (3:1 minimum pour un composant) */
+  --border-input: #7b8799;
 
   --error: #c62828;
   --error-bg: #fdecea;
@@ -333,7 +336,7 @@ select {
   padding: 0.8rem 0.9rem;
   color: var(--text);
   background: white;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   border-radius: 9px;
   outline: none;
   transition:
