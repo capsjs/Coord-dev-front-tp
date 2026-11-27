@@ -135,6 +135,14 @@ describe("EventDetailPage", () => {
     expect(mockedGetEventById).toHaveBeenCalledWith(1);
   });
 
+  it("affiche le titre de l'événement dans l'onglet du navigateur", async () => {
+    renderPage();
+
+    await screen.findByRole("heading", { name: "Conférence React" });
+
+    expect(document.title).toBe("Conférence React · Coord Events");
+  });
+
   it("[F05.3] affiche le message d'erreur 404 de l'API", async () => {
     mockedGetEventById.mockRejectedValue(new Error("Événement introuvable"));
 

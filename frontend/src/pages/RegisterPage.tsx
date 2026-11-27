@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router'
 import type { RegisterData } from '../api/auth'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/useAuth'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 // Mêmes règles que le back (backend/src/validation.js)
 const PASSWORD_MIN = 8
 const NAME_MIN = 2
 
 export function RegisterPage() {
+  usePageTitle('Créer un compte')
   const { register } = useAuth()
   const navigate = useNavigate()
 

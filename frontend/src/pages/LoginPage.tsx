@@ -2,8 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/useAuth'
+import { usePageTitle } from '../hooks/usePageTitle'
 
 export function LoginPage() {
+  usePageTitle('Connexion')
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
