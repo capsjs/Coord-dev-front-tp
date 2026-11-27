@@ -42,6 +42,12 @@
   box-sizing: border-box;
 }
 
+/* Contour visible quand on navigue au clavier (pas au clic de souris) */
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -338,7 +344,6 @@ select {
   background: white;
   border: 1px solid var(--border-input);
   border-radius: 9px;
-  outline: none;
   transition:
     border 0.2s ease,
     box-shadow 0.2s ease;
